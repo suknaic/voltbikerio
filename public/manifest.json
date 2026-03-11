@@ -1,0 +1,37 @@
+{
+    "name": "Bike Rental",
+    "short_name": "BikeRent",
+    "description": "Sistema de aluguel de bicicletas por minuto",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#000000",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "/icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Iniciar Aluguel",
+            "url": "/employee/rentals",
+            "description": "Iniciar um novo aluguel"
+        },
+        {
+            "name": "Dashboard Admin",
+            "url": "/admin/dashboard",
+            "description": "Painel do gerente"
+        }
+    ]
+}
