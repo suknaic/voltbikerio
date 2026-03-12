@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0a0a0a"/>
+  <!-- Left wheel -->
+  <circle cx="152" cy="316" r="80" fill="none" stroke="#48fd00" stroke-width="24"/>
+  <!-- Right wheel -->
+  <circle cx="360" cy="316" r="80" fill="none" stroke="#48fd00" stroke-width="24"/>
+  <!-- Bottom bracket -->
+  <circle cx="256" cy="316" r="14" fill="#48fd00"/>
+  <!-- Chain stay left -->
+  <line x1="256" y1="316" x2="152" y2="316" stroke="#48fd00" stroke-width="20" stroke-linecap="round"/>
+  <!-- Seat tube -->
+  <line x1="256" y1="316" x2="224" y2="196" stroke="#48fd00" stroke-width="20" stroke-linecap="round"/>
+  <!-- Down tube -->
+  <line x1="224" y1="196" x2="152" y2="316" stroke="#48fd00" stroke-width="20" stroke-linecap="round"/>
+  <!-- Top tube -->
+  <line x1="224" y1="196" x2="316" y2="196" stroke="#48fd00" stroke-width="20" stroke-linecap="round"/>
+  <!-- Fork -->
+  <line x1="316" y1="196" x2="360" y2="316" stroke="#48fd00" stroke-width="20" stroke-linecap="round"/>
+  <!-- Head tube -->
+  <line x1="316" y1="178" x2="322" y2="212" stroke="#48fd00" stroke-width="20" stroke-linecap="round"/>
+  <!-- Handlebar -->
+  <line x1="296" y1="176" x2="348" y2="170" stroke="#48fd00" stroke-width="16" stroke-linecap="round"/>
+  <!-- Seat -->
+  <line x1="204" y1="190" x2="246" y2="190" stroke="#48fd00" stroke-width="16" stroke-linecap="round"/>
+</svg>

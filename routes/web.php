@@ -3,6 +3,7 @@
 use App\Http\Controllers\BikeController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\RentalController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -21,6 +22,12 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             ? redirect()->route('admin.dashboard')
             : redirect()->route('employee.dashboard');
     })->name('dashboard');
+
+    // Push subscriptions (authorization enforced in StorePushSubscriptionRequest)
+    Route::post('push-subscriptions', [PushSubscriptionController::class, 'store'])
+        ->name('push-subscriptions.store');
+    Route::delete('push-subscriptions', [PushSubscriptionController::class, 'destroy'])
+        ->name('push-subscriptions.destroy');
 
     // Admin routes
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function (): void {
@@ -46,4 +53,4 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     });
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

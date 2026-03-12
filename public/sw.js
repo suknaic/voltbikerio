@@ -2,6 +2,9 @@ const CACHE_NAME = 'bike-rental-v1';
 const STATIC_ASSETS = [
     '/',
     '/manifest.json',
+    '/icons/icon.svg',
+    '/icons/icon-192.png',
+    '/icons/icon-512.png',
 ];
 
 self.addEventListener('install', (event) => {
@@ -54,5 +57,59 @@ self.addEventListener('fetch', (event) => {
     // Network first for HTML
     event.respondWith(
         fetch(event.request).catch(() => caches.match(event.request)),
+    );
+});
+
+// --- Web Push Notifications ---
+
+self.addEventListener('push', (event) => {
+    if (!event.data) {
+        return;
+    }
+
+    let data;
+    try {
+        data = event.data.json();
+    } catch {
+        return;
+    }
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            // App is open and visible — Pusher/Echo in-app notification handles it.
+            const hasVisibleClient = clientList.some((c) => c.visibilityState === 'visible');
+            if (hasVisibleClient) {
+                return;
+            }
+
+            // App is closed or in background — show OS notification.
+            return self.registration.showNotification(data.title ?? 'Bike Rental', {
+                body: data.body ?? '',
+                icon: data.icon ?? '/icons/icon-192.png',
+                badge: data.badge ?? '/icons/icon-192.png',
+                data: data.data ?? {},
+                requireInteraction: false,
+            });
+        }),
+    );
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    const targetUrl = event.notification.data?.url ?? '/admin/dashboard';
+
+    event.waitUntil(
+        clients
+            .matchAll({ type: 'window', includeUncontrolled: true })
+            .then((clientList) => {
+                for (const client of clientList) {
+                    if ('focus' in client) {
+                        return client.navigate(targetUrl).then((c) => c?.focus());
+                    }
+                }
+
+                return clients.openWindow?.(targetUrl);
+            }),
     );
 });

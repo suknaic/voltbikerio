@@ -2,9 +2,14 @@
 
 namespace App\Providers;
 
+use App\Events\RentalEnded;
+use App\Events\RentalStarted;
+use App\Listeners\SendRentalEndedPushNotification;
+use App\Listeners\SendRentalStartedPushNotification;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -24,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->registerEventListeners();
     }
 
     /**
@@ -46,5 +52,11 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null,
         );
+    }
+
+    protected function registerEventListeners(): void
+    {
+        Event::listen(RentalStarted::class, SendRentalStartedPushNotification::class);
+        Event::listen(RentalEnded::class, SendRentalEndedPushNotification::class);
     }
 }

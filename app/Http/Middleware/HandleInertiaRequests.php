@@ -47,6 +47,7 @@ class HandleInertiaRequests extends Middleware
                 'success' => session('success'),
                 'error' => session('error'),
             ],
+            'vapidPublicKey' => config('services.vapid.public_key'),
         ];
     }
 }

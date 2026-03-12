@@ -5,11 +5,11 @@ namespace App\Events;
 use App\Models\Rental;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class RentalEnded implements ShouldBroadcast
+class RentalEnded implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -20,6 +20,11 @@ class RentalEnded implements ShouldBroadcast
         return [
             new Channel('rentals'),
         ];
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'RentalEnded';
     }
 
     public function broadcastWith(): array

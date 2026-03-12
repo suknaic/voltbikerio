@@ -1,12 +1,9 @@
-import { Head, router } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
 import AppLayout from '@/layouts/app-layout';
 import type { Bike, BreadcrumbItem, Rental } from '@/types';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/admin/dashboard' },
-];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: '/admin/dashboard' }];
 
 type Summary = {
     total_minutes: number;
@@ -26,33 +23,8 @@ function formatMoney(value: number): string {
 
 export default function AdminDashboard({ activeRentals: initialRentals, bikes, todaySummary, monthSummary }: Props) {
     const [rentals, setRentals] = useState<Rental[]>(initialRentals);
-    const [loading, setLoading] = useState(false);
     const availableCount = bikes.filter((b) => b.status === 'disponível').length;
     const inUseCount = bikes.filter((b) => b.status === 'em uso').length;
-
-    useEffect(() => {
-        if (!window.Echo) return;
-
-        const channel = window.Echo.channel('rentals');
-
-        channel.listen('.RentalStarted', () => {
-            setLoading(true);
-            router.reload({
-                only: ['activeRentals', 'bikes', 'todaySummary', 'monthSummary'],
-                onFinish: () => setLoading(false),
-            });
-        });
-
-        channel.listen('.RentalEnded', () => {
-            setLoading(true);
-            router.reload({
-                only: ['activeRentals', 'bikes', 'todaySummary', 'monthSummary'],
-                onFinish: () => setLoading(false),
-            });
-        });
-
-        return () => window.Echo.leaveChannel('rentals');
-    }, []);
 
     useEffect(() => setRentals(initialRentals), [initialRentals]);
 
@@ -63,38 +35,23 @@ export default function AdminDashboard({ activeRentals: initialRentals, bikes, t
             <div className="mx-auto flex max-w-2xl flex-col gap-5 p-4 pb-24">
                 {/* Revenue Summary */}
                 <section>
-                    <p
-                        className="mb-3 text-xs font-bold uppercase tracking-widest"
-                        style={{ color: '#48fd00' }}
-                    >
+                    <p className="mb-3 text-xs font-bold uppercase tracking-widest" style={{ color: '#48fd00' }}>
                         Resumo Financeiro
                     </p>
                     <div className="grid grid-cols-2 gap-3">
                         {/* Today revenue */}
-                        <div
-                            className="rounded-2xl p-5"
-                            style={{ background: '#000', border: '1.5px solid #48fd0060' }}
-                        >
+                        <div className="rounded-2xl p-5" style={{ background: '#000', border: '1.5px solid #48fd0060' }}>
                             <p className="text-xs font-medium text-zinc-400">Receita Hoje</p>
-                            <p
-                                className="mt-1 text-2xl font-bold tabular-nums"
-                                style={{ color: '#48fd00' }}
-                            >
+                            <p className="mt-1 text-2xl font-bold tabular-nums" style={{ color: '#48fd00' }}>
                                 {formatMoney(todaySummary.receita_total)}
                             </p>
                             <p className="mt-0.5 text-xs text-zinc-500">{todaySummary.total_minutes} min</p>
                         </div>
 
                         {/* Month revenue */}
-                        <div
-                            className="rounded-2xl p-5"
-                            style={{ background: '#000', border: '1.5px solid #fbf10060' }}
-                        >
+                        <div className="rounded-2xl p-5" style={{ background: '#000', border: '1.5px solid #fbf10060' }}>
                             <p className="text-xs font-medium text-zinc-400">Receita do Mês</p>
-                            <p
-                                className="mt-1 text-2xl font-bold tabular-nums"
-                                style={{ color: '#fbf100' }}
-                            >
+                            <p className="mt-1 text-2xl font-bold tabular-nums" style={{ color: '#fbf100' }}>
                                 {formatMoney(monthSummary.receita_total)}
                             </p>
                             <p className="mt-0.5 text-xs text-zinc-500">{monthSummary.total_minutes} min</p>
@@ -103,10 +60,7 @@ export default function AdminDashboard({ activeRentals: initialRentals, bikes, t
                         {/* Available */}
                         <div className="rounded-2xl p-5" style={{ background: '#111' }}>
                             <p className="text-xs font-medium text-zinc-400">Disponíveis</p>
-                            <p
-                                className="mt-1 text-3xl font-bold"
-                                style={{ color: '#48fd00' }}
-                            >
+                            <p className="mt-1 text-3xl font-bold" style={{ color: '#48fd00' }}>
                                 {availableCount}
                             </p>
                             <p className="mt-0.5 text-xs text-zinc-500">de {bikes.length} bikes</p>
@@ -115,15 +69,10 @@ export default function AdminDashboard({ activeRentals: initialRentals, bikes, t
                         {/* In use */}
                         <div className="rounded-2xl p-5" style={{ background: '#111' }}>
                             <p className="text-xs font-medium text-zinc-400">Em Uso Agora</p>
-                            <p
-                                className="mt-1 text-3xl font-bold"
-                                style={{ color: '#fbf100' }}
-                            >
+                            <p className="mt-1 text-3xl font-bold" style={{ color: '#fbf100' }}>
                                 {inUseCount}
                             </p>
-                            <p className="mt-0.5 text-xs text-zinc-500">
-                                {rentals.length} aluguel(is) ativo(s)
-                            </p>
+                            <p className="mt-0.5 text-xs text-zinc-500">{rentals.length} aluguel(is) ativo(s)</p>
                         </div>
                     </div>
                 </section>
@@ -161,10 +110,7 @@ export default function AdminDashboard({ activeRentals: initialRentals, bikes, t
                 {/* Active Rentals */}
                 <section>
                     <div className="mb-3 flex items-center justify-between">
-                        <p
-                            className="text-xs font-bold uppercase tracking-widest"
-                            style={{ color: '#fbf100' }}
-                        >
+                        <p className="text-xs font-bold uppercase tracking-widest" style={{ color: '#fbf100' }}>
                             Em Andamento
                         </p>
                         {rentals.length > 0 && (
@@ -177,13 +123,7 @@ export default function AdminDashboard({ activeRentals: initialRentals, bikes, t
                         )}
                     </div>
 
-                    {loading ? (
-                        <div className="flex flex-col gap-3">
-                            {[1, 2].map((i) => (
-                                <Skeleton key={i} className="h-20 rounded-2xl" />
-                            ))}
-                        </div>
-                    ) : rentals.length === 0 ? (
+                    {rentals.length === 0 ? (
                         <div
                             className="rounded-2xl px-4 py-10 text-center text-sm"
                             style={{ background: '#111', color: '#666' }}

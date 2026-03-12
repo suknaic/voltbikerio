@@ -63,6 +63,8 @@ class RentalService
 
         $this->bikeRepository->markAsAvailable($rental->bike);
 
+        $rental->load(['bike', 'customer']);
+
         RentalEnded::dispatch($rental);
 
         return $rental;

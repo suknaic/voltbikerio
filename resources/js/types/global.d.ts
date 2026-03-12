@@ -8,6 +8,7 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth & { role?: string };
             sidebarOpen: boolean;
+            vapidPublicKey: string | null;
             flash?: {
                 success?: string;
                 error?: string;

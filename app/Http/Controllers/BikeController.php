@@ -30,7 +30,7 @@ class BikeController extends Controller
     {
         $this->bikeRepository->create($request->validated());
 
-        return redirect()->route('bikes.index')->with('success', 'Bicicleta cadastrada com sucesso.');
+        return redirect()->route('admin.bikes.index')->with('success', 'Bicicleta cadastrada com sucesso.');
     }
 
     public function edit(Bike $bike): Response
@@ -44,13 +44,13 @@ class BikeController extends Controller
     {
         $this->bikeRepository->update($bike, $request->validated());
 
-        return redirect()->route('bikes.index')->with('success', 'Bicicleta atualizada com sucesso.');
+        return redirect()->route('admin.bikes.index')->with('success', 'Bicicleta atualizada com sucesso.');
     }
 
     public function destroy(Bike $bike): RedirectResponse
     {
         $this->bikeRepository->delete($bike);
 
-        return redirect()->route('bikes.index')->with('success', 'Bicicleta removida com sucesso.');
+        return redirect()->route('admin.bikes.index')->with('success', 'Bicicleta removida com sucesso.');
     }
 }
