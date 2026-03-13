@@ -53,7 +53,8 @@ class RentalService
 
         $endTime = Carbon::now();
         $totalMinutes = (int) $rental->start_time->diffInMinutes($endTime);
-        $valorTotal = $totalMinutes * $rental->bike->preco_por_minuto;
+        $pricePerMinute = (float) Bike::getPricePerMinute();
+        $valorTotal = $totalMinutes * $pricePerMinute;
 
         $rental = $this->rentalRepository->update($rental, [
             'end_time' => $endTime,

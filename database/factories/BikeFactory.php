@@ -14,7 +14,6 @@ class BikeFactory extends Factory
         return [
             'nome' => fake()->randomElement(['Caloi 10', 'Monark', 'Caloi Mountain', 'Bicicleta Urbana', 'Speed Pro']),
             'status' => fake()->randomElement(['disponível', 'em uso']),
-            'preco_por_minuto' => fake()->randomFloat(2, 0.10, 0.50),
         ];
     }
 

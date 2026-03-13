@@ -1,4 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,14 +15,29 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function CreateBike() {
+    const [preview, setPreview] = useState<string | null>(null);
     const { data, setData, post, processing, errors } = useForm({
         nome: '',
-        preco_por_minuto: '',
+        foto: null as File | null,
     });
+
+    function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0];
+        if (file) {
+            setData('foto', file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        post('/admin/bikes');
+        post('/admin/bikes', {
+            forceFormData: data.foto !== null,
+        });
     }
 
     return (
@@ -48,18 +64,19 @@ export default function CreateBike() {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="preco_por_minuto">Preço por Minuto (R$)</Label>
+                                <Label htmlFor="foto">Foto (opcional)</Label>
                                 <Input
-                                    id="preco_por_minuto"
-                                    type="number"
-                                    step="0.01"
-                                    min="0.01"
-                                    value={data.preco_por_minuto}
-                                    onChange={(e) => setData('preco_por_minuto', e.target.value)}
-                                    placeholder="0.25"
-                                    required
+                                    id="foto"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleFileChange}
                                 />
-                                <InputError message={errors.preco_por_minuto} />
+                                {errors.foto && <InputError message={errors.foto} />}
+                                {preview && (
+                                    <div className="mt-2 rounded border border-gray-300 overflow-hidden">
+                                        <img src={preview} alt="Preview" className="w-full h-32 object-cover" />
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex gap-2 pt-2">

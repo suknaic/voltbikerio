@@ -9,6 +9,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 type Props = {
     rental: Rental;
+    preco_por_minuto: string;
 };
 
 function formatDuration(minutes: number): string {
@@ -43,7 +44,7 @@ function BikeSvg() {
     );
 }
 
-export default function RentalBilling({ rental }: Props) {
+export default function RentalBilling({ rental, preco_por_minuto }: Props) {
     const isCompleted = rental.end_time !== null;
     const totalMinutes = rental.total_minutes ?? 0;
     const valorTotal = parseFloat(rental.valor_total ?? '0');
@@ -65,7 +66,7 @@ export default function RentalBilling({ rental }: Props) {
                     <BikeSvg />
                     <p className="text-base font-bold text-white">{rental.bike.nome}</p>
                     <p className="text-xs" style={{ color: '#48fd00' }}>
-                        R$ {parseFloat(rental.bike.preco_por_minuto).toFixed(2)}/min
+                        R$ {parseFloat(preco_por_minuto).toFixed(2)}/min
                     </p>
                 </div>
 

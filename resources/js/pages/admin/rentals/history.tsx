@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem, Customer, PaginatedData, Rental } from '@/types';
+import type { BreadcrumbItem, Bike, PaginatedData, Rental } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/admin/dashboard' },
@@ -14,21 +14,21 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 type Props = {
     rentals: PaginatedData<Rental>;
-    customers: Customer[];
+    bikes: Bike[];
     summary: { total_minutes: number; receita_total: number };
     filters: Record<string, string>;
 };
 
-export default function RentalHistory({ rentals, customers, summary, filters }: Props) {
+export default function RentalHistory({ rentals, bikes, summary, filters }: Props) {
     const [dateFrom, setDateFrom] = useState(filters.date_from ?? '');
     const [dateTo, setDateTo] = useState(filters.date_to ?? '');
-    const [customerId, setCustomerId] = useState(filters.customer_id ?? '');
+    const [bikeId, setBikeId] = useState(filters.bike_id ?? '');
 
     function applyFilters() {
         router.get('/admin/rentals/history', {
             date_from: dateFrom || undefined,
             date_to: dateTo || undefined,
-            customer_id: customerId || undefined,
+            bike_id: bikeId || undefined,
         }, { preserveState: true });
     }
 
@@ -97,17 +97,17 @@ export default function RentalHistory({ rentals, customers, summary, filters }: 
                                 />
                             </div>
                             <div className="grid gap-1">
-                                <Label htmlFor="customer_id">Cliente</Label>
+                                <Label htmlFor="bike_id">Bicicleta</Label>
                                 <select
-                                    id="customer_id"
-                                    value={customerId}
-                                    onChange={(e) => setCustomerId(e.target.value)}
+                                    id="bike_id"
+                                    value={bikeId}
+                                    onChange={(e) => setBikeId(e.target.value)}
                                     className="h-9 rounded-md border border-input bg-background px-3 text-sm"
                                 >
-                                    <option value="">Todos</option>
-                                    {customers.map((c) => (
-                                        <option key={c.id} value={c.id}>
-                                            {c.nome}
+                                    <option value="">Todas</option>
+                                    {bikes.map((b) => (
+                                        <option key={b.id} value={b.id}>
+                                            {b.nome}
                                         </option>
                                     ))}
                                 </select>

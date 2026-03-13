@@ -2,7 +2,8 @@ export type Bike = {
     id: number;
     nome: string;
     status: 'disponível' | 'em uso';
-    preco_por_minuto: string;
+    foto_url?: string;
+    disponivel: boolean;
     created_at: string;
     updated_at: string;
 };
@@ -37,3 +38,13 @@ export type PaginatedData<T> = {
     total: number;
     per_page: number;
 };
+
+export type Employee = {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    created_at: string;
+    updated_at: string;
+};
+

@@ -14,7 +14,11 @@ class BikeRepository
 
     public function available(): Collection
     {
-        return Bike::query()->where('status', 'disponível')->orderBy('nome')->get();
+        return Bike::query()
+            ->where('disponivel', true)
+            ->where('status', 'disponível')
+            ->orderBy('nome')
+            ->get();
     }
 
     public function findOrFail(int $id): Bike

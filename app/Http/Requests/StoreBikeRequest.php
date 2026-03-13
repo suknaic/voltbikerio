@@ -15,7 +15,7 @@ class StoreBikeRequest extends FormRequest
     {
         return [
             'nome' => ['required', 'string', 'max:100'],
-            'preco_por_minuto' => ['required', 'numeric', 'min:0.01', 'max:999.99'],
+            'foto' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
         ];
     }
 
@@ -23,8 +23,9 @@ class StoreBikeRequest extends FormRequest
     {
         return [
             'nome.required' => 'O nome da bicicleta é obrigatório.',
-            'preco_por_minuto.required' => 'O preço por minuto é obrigatório.',
-            'preco_por_minuto.min' => 'O preço por minuto deve ser maior que zero.',
+            'foto.image' => 'O arquivo deve ser uma imagem.',
+            'foto.mimes' => 'A imagem deve ser em formato JPEG, PNG ou WebP.',
+            'foto.max' => 'A imagem não deve exceder 2MB.',
         ];
     }
 }

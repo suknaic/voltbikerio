@@ -11,6 +11,7 @@ const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: '/employee/da
 type Props = {
     availableBikes: Bike[];
     activeRentals: Rental[];
+    preco_por_minuto: string;
 };
 
 function formatElapsed(startTime: string, now: number): string {
@@ -48,7 +49,7 @@ function playAlert(): void {
     }
 }
 
-export default function EmployeeDashboard({ availableBikes, activeRentals }: Props) {
+export default function EmployeeDashboard({ availableBikes, activeRentals, preco_por_minuto }: Props) {
     const { props } = usePage<{ flash?: { error?: string } }>();
 
     const [selectedBike, setSelectedBike] = useState<Bike | null>(null);
@@ -152,7 +153,7 @@ export default function EmployeeDashboard({ availableBikes, activeRentals }: Pro
                                         <div className="mb-2 text-2xl">🚲</div>
                                         <p className="font-semibold leading-tight">{bike.nome}</p>
                                         <p className="mt-1 text-xs" style={{ color: '#48fd00' }}>
-                                            R$ {parseFloat(bike.preco_por_minuto).toFixed(2)}/min
+                                            R$ {parseFloat(preco_por_minuto).toFixed(2)}/min
                                         </p>
                                         {isSelected && (
                                             <span className="mt-2 block text-xs font-bold" style={{ color: '#fbf100' }}>
@@ -177,7 +178,7 @@ export default function EmployeeDashboard({ availableBikes, activeRentals }: Pro
                                     </p>
                                     <p className="font-bold text-white">{selectedBike.nome}</p>
                                     <p className="text-xs" style={{ color: '#48fd00' }}>
-                                        R$ {parseFloat(selectedBike.preco_por_minuto).toFixed(2)}/min
+                                        R$ {parseFloat(preco_por_minuto).toFixed(2)}/min
                                     </p>
                                 </div>
                                 <button type="button" onClick={cancelSelection} className="text-xs underline" style={{ color: '#666' }}>
@@ -312,7 +313,7 @@ export default function EmployeeDashboard({ availableBikes, activeRentals }: Pro
                                                         {formatElapsed(rental.start_time, now)}
                                                     </p>
                                                     <p className="text-sm font-semibold" style={{ color: '#fbf100' }}>
-                                                        ≈ R$ {estimatedCost(rental.start_time, rental.bike.preco_por_minuto, now)}
+                                                        ≈ R$ {estimatedCost(rental.start_time, preco_por_minuto, now)}
                                                     </p>
                                                 </div>
                                             </div>

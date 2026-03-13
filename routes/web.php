@@ -33,7 +33,11 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function (): void {
         Route::get('dashboard', [DashboardController::class, 'admin'])->name('dashboard');
         Route::resource('bikes', BikeController::class)->except(['show']);
+        Route::patch('bikes/{bike}/toggle-status', [BikeController::class, 'toggleStatus'])->name('bikes.toggle-status');
         Route::get('rentals/history', [RentalController::class, 'history'])->name('rentals.history');
+        Route::get('settings', [\App\Http\Controllers\SettingController::class, 'edit'])->name('settings.edit');
+        Route::patch('settings', [\App\Http\Controllers\SettingController::class, 'update'])->name('settings.update');
+        Route::resource('employees', \App\Http\Controllers\EmployeeController::class);
     });
 
     // Employee routes
@@ -53,4 +57,4 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     });
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

@@ -52,6 +52,7 @@ class RentalController extends Controller
 
         return Inertia::render('employee/rentals/billing', [
             'rental' => $rental,
+            'preco_por_minuto' => (string) \App\Models\Setting::get('preco_por_minuto', '0.25'),
         ]);
     }
 
@@ -64,14 +65,14 @@ class RentalController extends Controller
 
     public function history(Request $request): Response
     {
-        $filters = $request->only(['date_from', 'date_to', 'customer_id']);
+        $filters = $request->only(['date_from', 'date_to', 'bike_id']);
 
         $dateFrom = $filters['date_from'] ?? now()->startOfMonth()->toDateString();
         $dateTo = $filters['date_to'] ?? now()->toDateString();
 
         return Inertia::render('admin/rentals/history', [
             'rentals' => $this->rentalRepository->history($filters),
-            'customers' => $this->customerRepository->all(),
+            'bikes' => $this->bikeRepository->all(),
             'summary' => $this->rentalRepository->reportSummary($dateFrom, $dateTo),
             'filters' => $filters,
         ]);

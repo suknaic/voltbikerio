@@ -14,13 +14,14 @@ class Bike extends Model
     protected $fillable = [
         'nome',
         'status',
-        'preco_por_minuto',
+        'foto_url',
+        'disponivel',
     ];
 
     protected function casts(): array
     {
         return [
-            'preco_por_minuto' => 'decimal:2',
+            'disponivel' => 'boolean',
         ];
     }
 
@@ -31,6 +32,11 @@ class Bike extends Model
 
     public function isAvailable(): bool
     {
-        return $this->status === 'disponível';
+        return $this->disponivel && $this->status === 'disponível';
+    }
+
+    public static function getPricePerMinute(): string
+    {
+        return (string) Setting::get('preco_por_minuto', '0.25');
     }
 }

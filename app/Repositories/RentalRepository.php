@@ -32,8 +32,8 @@ class RentalRepository
             $query->whereDate('start_time', '<=', $filters['date_to']);
         }
 
-        if (isset($filters['customer_id'])) {
-            $query->where('customer_id', $filters['customer_id']);
+        if (isset($filters['bike_id'])) {
+            $query->where('bike_id', $filters['bike_id']);
         }
 
         return $query->paginate(20);
@@ -63,7 +63,7 @@ class RentalRepository
     {
         $result = Rental::query()
             ->whereNotNull('end_time')
-            ->whereBetween('start_time', [$dateFrom.' 00:00:00', $dateTo.' 23:59:59'])
+            ->whereBetween('start_time', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
             ->selectRaw('SUM(total_minutes) as total_minutes, SUM(valor_total) as receita_total')
             ->first();
 
