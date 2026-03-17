@@ -19,7 +19,7 @@ export default function EditBike({ bike }: Props) {
         { title: `Editar: ${bike.nome}`, href: `/admin/bikes/${bike.id}/edit` },
     ];
 
-    const [preview, setPreview] = useState<string | null>(bike.foto_url ? `/storage/${bike.foto_url}` : null);
+    const [preview, setPreview] = useState<string | null>(bike.foto_url ? `/${bike.foto_url}` : null);
     const { data, setData, patch, processing, errors } = useForm({
         nome: bike.nome,
         foto: null as File | null,

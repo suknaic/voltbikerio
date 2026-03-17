@@ -150,7 +150,13 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                                             color: 'white',
                                         }}
                                     >
-                                        <div className="mb-2 text-2xl">🚲</div>
+                                        <div className="mb-2 flex items-center justify-center">
+                                            <img
+                                                src={bike.foto_url ? `/${bike.foto_url}` : '/assets/bike.webp'}
+                                                alt={bike.nome}
+                                                className="h-16 w-16 object-cover rounded-lg"
+                                            />
+                                        </div>
                                         <p className="font-semibold leading-tight">{bike.nome}</p>
                                         <p className="mt-1 text-xs" style={{ color: '#48fd00' }}>
                                             R$ {parseFloat(preco_por_minuto).toFixed(2)}/min

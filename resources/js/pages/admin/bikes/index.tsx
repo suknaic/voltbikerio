@@ -75,6 +75,7 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b bg-muted/50">
+                                    <th className="px-4 py-3 text-left font-medium">Foto</th>
                                     <th className="px-4 py-3 text-left font-medium">Nome</th>
                                     <th className="px-4 py-3 text-left font-medium">Disponível para Aluguel</th>
                                     <th className="px-4 py-3 text-left font-medium">Status</th>
@@ -84,7 +85,7 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                             <tbody>
                                 {bikes.length === 0 && (
                                     <tr>
-                                        <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                                        <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
                                             Nenhuma bicicleta cadastrada.
                                         </td>
                                     </tr>
@@ -94,6 +95,13 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                                         key={bike.id}
                                         className="border-b transition-colors duration-150 hover:bg-muted/30"
                                     >
+                                        <td className="px-4 py-3">
+                                            <img
+                                                src={bike.foto_url ? `/${bike.foto_url}` : '/assets/bike.webp'}
+                                                alt={bike.nome}
+                                                className="h-12 w-12 object-cover rounded-md"
+                                            />
+                                        </td>
                                         <td className="px-4 py-3 font-medium">{bike.nome}</td>
                                         <td className="px-4 py-3">
                                             <button

@@ -32,8 +32,10 @@ class BikeController extends Controller
         $data = collect($request->validated())->except('foto')->toArray();
 
         if ($request->hasFile('foto')) {
-            $path = $request->file('foto')->store('bikes', 'public');
-            $data['foto_url'] = $path;
+            $file = $request->file('foto');
+            $filename = uniqid('bike_') . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('assets/upload/foto/bike'), $filename);
+            $data['foto_url'] = 'assets/upload/foto/bike/' . $filename;
         }
 
         $this->bikeRepository->create($data);
@@ -53,12 +55,15 @@ class BikeController extends Controller
         $data = collect($request->validated())->except('foto')->toArray();
 
         if ($request->hasFile('foto')) {
-            if ($bike->foto_url && \Storage::disk('public')->exists($bike->foto_url)) {
-                \Storage::disk('public')->delete($bike->foto_url);
+            // Delete old photo if exists
+            if ($bike->foto_url && file_exists(public_path($bike->foto_url))) {
+                unlink(public_path($bike->foto_url));
             }
 
-            $path = $request->file('foto')->store('bikes', 'public');
-            $data['foto_url'] = $path;
+            $file = $request->file('foto');
+            $filename = uniqid('bike_') . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('assets/upload/foto/bike'), $filename);
+            $data['foto_url'] = 'assets/upload/foto/bike/' . $filename;
         }
 
         $this->bikeRepository->update($bike, $data);
@@ -68,8 +73,8 @@ class BikeController extends Controller
 
     public function destroy(Bike $bike): RedirectResponse
     {
-        if ($bike->foto_url && \Storage::disk('public')->exists($bike->foto_url)) {
-            \Storage::disk('public')->delete($bike->foto_url);
+        if ($bike->foto_url && file_exists(public_path($bike->foto_url))) {
+            unlink(public_path($bike->foto_url));
         }
 
         $this->bikeRepository->delete($bike);
