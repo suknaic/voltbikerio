@@ -17,7 +17,7 @@ export default function AuthSimpleLayout({
                             className="flex flex-col items-center gap-2 font-medium"
                         >
                             <div className="mb-6 flex items-center justify-center">
-                                <img src="/assets/logo-site.png" height={200} width={200} alt="Logo" className="object-contain" />
+                                <img src="/assets/logo-site.png" height={120} width={120} alt="Logo" className="object-contain" />
                             </div>
                             <span className="sr-only">{title}</span>
                         </Link>

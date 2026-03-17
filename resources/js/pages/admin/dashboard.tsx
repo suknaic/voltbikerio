@@ -23,9 +23,10 @@ function formatMoney(value: number): string {
 
 export default function AdminDashboard({ activeRentals: initialRentals, bikes, todaySummary, monthSummary }: Props) {
     const [rentals, setRentals] = useState<Rental[]>(initialRentals);
-    const availableCount = bikes.filter((b) => b.status === 'disponível').length;
+    const availableCount = bikes.filter((b) => b.disponivel && b.status === 'disponível').length;
     const inUseCount = bikes.filter((b) => b.status === 'em uso').length;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => setRentals(initialRentals), [initialRentals]);
 
     return (
