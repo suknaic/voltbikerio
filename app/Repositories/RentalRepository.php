@@ -19,6 +19,16 @@ class RentalRepository
 
     public function history(array $filters = []): LengthAwarePaginator
     {
+        return $this->buildHistoryQuery($filters)->paginate(20);
+    }
+
+    public function historyAll(array $filters = []): Collection
+    {
+        return $this->buildHistoryQuery($filters)->get();
+    }
+
+    private function buildHistoryQuery(array $filters = []): \Illuminate\Database\Eloquent\Builder
+    {
         $query = Rental::query()
             ->with(['bike', 'customer'])
             ->whereNotNull('end_time')
@@ -36,7 +46,7 @@ class RentalRepository
             $query->where('bike_id', $filters['bike_id']);
         }
 
-        return $query->paginate(20);
+        return $query;
     }
 
     public function findOrFail(int $id): Rental
@@ -57,19 +67,32 @@ class RentalRepository
     }
 
     /**
-     * @return array{total_minutes: int, receita_total: float}
+     * @return array{total_rentals: int, total_minutes: int, receita_total: float, tempo_medio: int, ticket_medio: float}
      */
-    public function reportSummary(string $dateFrom, string $dateTo): array
+    public function reportSummary(string $dateFrom, string $dateTo, ?int $bikeId = null): array
     {
-        $result = Rental::query()
+        $query = Rental::query()
             ->whereNotNull('end_time')
-            ->whereBetween('start_time', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59'])
-            ->selectRaw('SUM(total_minutes) as total_minutes, SUM(valor_total) as receita_total')
+            ->whereBetween('start_time', [$dateFrom . ' 00:00:00', $dateTo . ' 23:59:59']);
+
+        if ($bikeId !== null) {
+            $query->where('bike_id', $bikeId);
+        }
+
+        $result = $query
+            ->selectRaw('COUNT(*) as total_rentals, SUM(total_minutes) as total_minutes, SUM(valor_total) as receita_total')
             ->first();
 
+        $totalRentals = (int) ($result?->total_rentals ?? 0);
+        $totalMinutes = (int) ($result?->total_minutes ?? 0);
+        $receita = (float) ($result?->receita_total ?? 0);
+
         return [
-            'total_minutes' => (int) ($result?->total_minutes ?? 0),
-            'receita_total' => (float) ($result?->receita_total ?? 0),
+            'total_rentals' => $totalRentals,
+            'total_minutes' => $totalMinutes,
+            'receita_total' => $receita,
+            'tempo_medio' => $totalRentals > 0 ? (int) round($totalMinutes / $totalRentals) : 0,
+            'ticket_medio' => $totalRentals > 0 ? round($receita / $totalRentals, 2) : 0.0,
         ];
     }
 }

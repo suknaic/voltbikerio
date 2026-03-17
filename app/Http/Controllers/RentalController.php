@@ -69,12 +69,41 @@ class RentalController extends Controller
 
         $dateFrom = $filters['date_from'] ?? now()->startOfMonth()->toDateString();
         $dateTo = $filters['date_to'] ?? now()->toDateString();
+        $bikeId = isset($filters['bike_id']) ? (int) $filters['bike_id'] : null;
 
         return Inertia::render('admin/rentals/history', [
             'rentals' => $this->rentalRepository->history($filters),
             'bikes' => $this->bikeRepository->all(),
-            'summary' => $this->rentalRepository->reportSummary($dateFrom, $dateTo),
+            'summary' => $this->rentalRepository->reportSummary($dateFrom, $dateTo, $bikeId),
             'filters' => $filters,
         ]);
+    }
+
+    public function exportCsv(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $filters = $request->only(['date_from', 'date_to', 'bike_id']);
+        $rentals = $this->rentalRepository->historyAll($filters);
+        $filename = 'alugueis_' . now()->format('Y-m-d') . '.csv';
+
+        return response()->streamDownload(function () use ($rentals) {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($handle, ['ID', 'Bicicleta', 'Cliente', 'Início', 'Fim', 'Tempo Solicitado (min)', 'Duração Real (min)', 'Valor (R$)'], ';');
+
+            foreach ($rentals as $rental) {
+                fputcsv($handle, [
+                    $rental->id,
+                    $rental->bike->nome,
+                    $rental->customer->nome,
+                    $rental->start_time,
+                    $rental->end_time,
+                    $rental->tempo_solicitado,
+                    $rental->total_minutes,
+                    $rental->valor_total,
+                ], ';');
+            }
+
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 }

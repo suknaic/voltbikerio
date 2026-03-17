@@ -35,6 +35,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::resource('bikes', BikeController::class)->except(['show']);
         Route::patch('bikes/{bike}/toggle-status', [BikeController::class, 'toggleStatus'])->name('bikes.toggle-status');
         Route::get('rentals/history', [RentalController::class, 'history'])->name('rentals.history');
+        Route::get('rentals/export-csv', [RentalController::class, 'exportCsv'])->name('rentals.export-csv');
         Route::get('settings', [\App\Http\Controllers\SettingController::class, 'edit'])->name('settings.edit');
         Route::patch('settings', [\App\Http\Controllers\SettingController::class, 'update'])->name('settings.update');
         Route::resource('employees', \App\Http\Controllers\EmployeeController::class);

@@ -8,14 +8,20 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Bike, PaginatedData, Rental } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/admin/dashboard' },
+    { title: 'Painel', href: '/admin/dashboard' },
     { title: 'Histórico de Aluguéis', href: '/admin/rentals/history' },
 ];
 
 type Props = {
     rentals: PaginatedData<Rental>;
     bikes: Bike[];
-    summary: { total_minutes: number; receita_total: number };
+    summary: {
+        total_rentals: number;
+        total_minutes: number;
+        receita_total: number;
+        tempo_medio: number;
+        ticket_medio: number;
+    };
     filters: Record<string, string>;
 };
 
@@ -30,6 +36,14 @@ export default function RentalHistory({ rentals, bikes, summary, filters }: Prop
             date_to: dateTo || undefined,
             bike_id: bikeId || undefined,
         }, { preserveState: true });
+    }
+
+    function exportCsv() {
+        const params = new URLSearchParams();
+        if (dateFrom) params.set('date_from', dateFrom);
+        if (dateTo) params.set('date_to', dateTo);
+        if (bikeId) params.set('bike_id', bikeId);
+        window.location.href = `/admin/rentals/export-csv?${params.toString()}`;
     }
 
     function formatDuration(minutes: number | null) {
@@ -48,13 +62,13 @@ export default function RentalHistory({ rentals, bikes, summary, filters }: Prop
 
             <div className="flex flex-col gap-4 p-4">
                 {/* Summary */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
                     <Card className="animate-in fade-in-0 duration-300">
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">Total de Tempo</CardTitle>
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Total de Aluguéis</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-2xl font-bold">{formatDuration(summary.total_minutes)}</p>
+                            <p className="text-2xl font-bold">{summary.total_rentals}</p>
                         </CardContent>
                     </Card>
                     <Card className="animate-in fade-in-0 delay-75 duration-300">
@@ -65,6 +79,32 @@ export default function RentalHistory({ rentals, bikes, summary, filters }: Prop
                             <p className="text-2xl font-bold text-green-600">
                                 R$ {summary.receita_total.toFixed(2)}
                             </p>
+                        </CardContent>
+                    </Card>
+                    <Card className="animate-in fade-in-0 delay-100 duration-300">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Ticket Médio</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-2xl font-bold text-blue-600">
+                                R$ {summary.ticket_medio.toFixed(2)}
+                            </p>
+                        </CardContent>
+                    </Card>
+                    <Card className="animate-in fade-in-0 delay-150 duration-300">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Total de Tempo</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-2xl font-bold">{formatDuration(summary.total_minutes)}</p>
+                        </CardContent>
+                    </Card>
+                    <Card className="animate-in fade-in-0 delay-200 duration-300">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-medium text-muted-foreground">Duração Média</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-2xl font-bold">{formatDuration(summary.tempo_medio)}</p>
                         </CardContent>
                     </Card>
                 </div>
@@ -115,6 +155,9 @@ export default function RentalHistory({ rentals, bikes, summary, filters }: Prop
                             <div className="flex items-end">
                                 <Button onClick={applyFilters}>Filtrar</Button>
                             </div>
+                            <div className="flex items-end">
+                                <Button variant="outline" onClick={exportCsv}>Exportar CSV</Button>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -129,6 +172,7 @@ export default function RentalHistory({ rentals, bikes, summary, filters }: Prop
                                     <th className="px-4 py-3 text-left font-medium">Cliente</th>
                                     <th className="px-4 py-3 text-left font-medium">Início</th>
                                     <th className="px-4 py-3 text-left font-medium">Fim</th>
+                                    <th className="px-4 py-3 text-left font-medium">Solicitado</th>
                                     <th className="px-4 py-3 text-left font-medium">Duração</th>
                                     <th className="px-4 py-3 text-right font-medium">Valor</th>
                                 </tr>
@@ -136,7 +180,7 @@ export default function RentalHistory({ rentals, bikes, summary, filters }: Prop
                             <tbody>
                                 {rentals.data.length === 0 && (
                                     <tr>
-                                        <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                                        <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                                             Nenhum aluguel encontrado.
                                         </td>
                                     </tr>
@@ -151,6 +195,7 @@ export default function RentalHistory({ rentals, bikes, summary, filters }: Prop
                                         <td className="px-4 py-3 text-xs">
                                             {rental.end_time ? new Date(rental.end_time).toLocaleString('pt-BR') : '-'}
                                         </td>
+                                        <td className="px-4 py-3">{formatDuration(rental.tempo_solicitado)}</td>
                                         <td className="px-4 py-3">{formatDuration(rental.total_minutes)}</td>
                                         <td className="px-4 py-3 text-right">
                                             {rental.valor_total
