@@ -1,17 +1,17 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
 import type { Bike, BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/admin/dashboard' },
+    { title: 'Painel Administrativo', href: '/admin/dashboard' },
     { title: 'Bicicletas', href: '/admin/bikes' },
 ];
 
@@ -56,7 +56,7 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Bicicletas" />
 
-            <div className="flex flex-col gap-4 p-4">
+            <div className="flex flex-col gap-4 p-3 sm:p-4 md:p-6">
                 {props.flash?.success && (
                     <div className="animate-in fade-in-0 rounded-md bg-green-50 px-4 py-3 text-sm text-green-700 ring-1 ring-green-200">
                         {props.flash.success}
@@ -71,15 +71,15 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                 </div>
 
                 <Card>
-                    <CardContent className="p-0">
+                    <CardContent className="overflow-x-auto p-0">
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b bg-muted/50">
-                                    <th className="px-4 py-3 text-left font-medium">Foto</th>
-                                    <th className="px-4 py-3 text-left font-medium">Nome</th>
-                                    <th className="px-4 py-3 text-left font-medium">Disponível para Aluguel</th>
-                                    <th className="px-4 py-3 text-left font-medium">Status</th>
-                                    <th className="px-4 py-3 text-right font-medium">Ações</th>
+                                    <th className="hidden px-2 py-3 text-left font-medium sm:table-cell sm:px-4">Foto</th>
+                                    <th className="px-2 py-3 text-left font-medium sm:px-4">Nome</th>
+                                    <th className="px-2 py-3 text-left font-medium sm:table-cell sm:px-4">Disponível para Aluguel</th>
+                                    <th className="px-2 py-3 text-left font-medium sm:px-4">Status</th>
+                                    <th className="px-2 py-3 text-right font-medium sm:px-4">Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -95,15 +95,15 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                                         key={bike.id}
                                         className="border-b transition-colors duration-150 hover:bg-muted/30"
                                     >
-                                        <td className="px-4 py-3">
+                                        <td className="hidden px-2 py-3 sm:table-cell sm:px-4">
                                             <img
                                                 src={bike.foto_url ? `/${bike.foto_url}` : '/assets/bike.webp'}
                                                 alt={bike.nome}
-                                                className="h-12 w-12 object-cover rounded-md"
+                                                className="h-10 w-10 rounded-md object-cover sm:h-12 sm:w-12"
                                             />
                                         </td>
-                                        <td className="px-4 py-3 font-medium">{bike.nome}</td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-2 py-3 font-medium sm:px-4">{bike.nome}</td>
+                                        <td className="px-2 py-3 sm:table-cell sm:px-4">
                                             <button
                                                 onClick={() => handleToggle(bike)}
                                                 disabled={bike.status === 'em uso'}
@@ -123,11 +123,11 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                                                 />
                                             </button>
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-2 py-3 sm:px-4">
                                             {statusBadge(bike)}
                                         </td>
-                                        <td className="px-4 py-3 text-right">
-                                            <div className="flex justify-end gap-2">
+                                        <td className="px-2 py-3 text-right sm:px-4">
+                                            <div className="flex justify-end gap-1 sm:gap-2">
                                                 <Button variant="outline" size="sm" asChild>
                                                     <a href={`/admin/bikes/${bike.id}/edit`}>Editar</a>
                                                 </Button>
@@ -153,22 +153,22 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                         <CardTitle className="text-base">Preço por Minuto</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <form onSubmit={handlePriceSubmit} className="flex items-end gap-3">
-                            <div className="grid gap-1">
+                        <form onSubmit={handlePriceSubmit} className="flex flex-col items-start gap-3 sm:flex-row sm:items-end">
+                            <div className="grid w-full gap-1 sm:w-auto">
                                 <Label htmlFor="preco_por_minuto">Valor (R$)</Label>
                                 <Input
                                     id="preco_por_minuto"
                                     type="number"
                                     step="0.01"
                                     min="0.01"
-                                    className="w-36"
+                                    className="w-full sm:w-36"
                                     value={priceForm.data.preco_por_minuto}
                                     onChange={(e) => priceForm.setData('preco_por_minuto', e.target.value)}
                                     required
                                 />
                                 <InputError message={priceForm.errors.preco_por_minuto} />
                             </div>
-                            <Button type="submit" disabled={priceForm.processing}>
+                            <Button type="submit" disabled={priceForm.processing} className="w-full sm:w-auto">
                                 {priceForm.processing ? 'Salvando...' : 'Salvar Preço'}
                             </Button>
                         </form>

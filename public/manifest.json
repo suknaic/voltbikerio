@@ -1,7 +1,7 @@
 {
-    "name": "Bike Rental",
-    "short_name": "BikeRental",
-    "description": "Sistema de aluguel de bicicletas por minuto",
+    "name": "VoltBiker - Aluguel de Bicicletas",
+    "short_name": "VoltBiker",
+    "description": "Sistema de aluguel de bicicletas elétricas por minuto",
     "lang": "pt-BR",
     "start_url": "/dashboard",
     "scope": "/",
@@ -12,9 +12,9 @@
     "orientation": "any",
     "icons": [
         {
-            "src": "/icons/icon.svg",
+            "src": "/assets/logo-site.png",
             "sizes": "any",
-            "type": "image/svg+xml",
+            "type": "image/png",
             "purpose": "any"
         },
         {

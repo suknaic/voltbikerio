@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import type { Bike, BreadcrumbItem, Rental } from '@/types';
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Dashboard', href: '/employee/dashboard' }];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Painel de Aluguel', href: '/employee/dashboard' }];
 
 type Props = {
     availableBikes: Bike[];
@@ -108,9 +108,9 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard" />
+            <Head title="Painel de Aluguel" />
 
-            <div className="mx-auto flex max-w-2xl flex-col gap-6 p-4 pb-24">
+            <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-3 pb-24 sm:p-4 md:p-6">
                 {props.flash?.error && (
                     <div className="animate-in fade-in-0 rounded-xl bg-red-950 px-4 py-3 text-sm text-red-300 ring-1 ring-red-800">
                         {props.flash.error}
@@ -134,7 +134,7 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                             Nenhuma bicicleta disponível no momento.
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                             {availableBikes.map((bike) => {
                                 const isSelected = selectedBike?.id === bike.id;
                                 return (
@@ -142,7 +142,7 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                                         key={bike.id}
                                         type="button"
                                         onClick={() => selectBike(bike)}
-                                        className="rounded-2xl p-4 text-left transition-all duration-200 active:scale-95"
+                                        className="rounded-xl p-3 text-left transition-all duration-200 active:scale-95 sm:rounded-2xl sm:p-4"
                                         style={{
                                             background: isSelected ? '#000' : '#111',
                                             border: `2px solid ${isSelected ? '#48fd00' : '#222'}`,
@@ -154,10 +154,10 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                                             <img
                                                 src={bike.foto_url ? `/${bike.foto_url}` : '/assets/bike.webp'}
                                                 alt={bike.nome}
-                                                className="h-16 w-16 object-cover rounded-lg"
+                                                className="h-14 w-14 rounded-lg object-cover sm:h-16 sm:w-16"
                                             />
                                         </div>
-                                        <p className="font-semibold leading-tight">{bike.nome}</p>
+                                        <p className="text-sm font-semibold leading-tight sm:text-base">{bike.nome}</p>
                                         <p className="mt-1 text-xs" style={{ color: '#48fd00' }}>
                                             R$ {parseFloat(preco_por_minuto).toFixed(2)}/min
                                         </p>
@@ -176,7 +176,7 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                 {/* Customer Form */}
                 {selectedBike && (
                     <section className="animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
-                        <div className="rounded-2xl p-5" style={{ background: '#000', border: '1.5px solid #48fd0060' }}>
+                        <div className="rounded-xl p-4 sm:rounded-2xl sm:p-5" style={{ background: '#000', border: '1.5px solid #48fd0060' }}>
                             <div className="mb-4 flex items-start justify-between">
                                 <div>
                                     <p className="text-xs" style={{ color: '#fbf100' }}>
@@ -285,7 +285,7 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                                 return (
                                     <div
                                         key={rental.id}
-                                        className="animate-in fade-in-0 overflow-hidden rounded-2xl transition-all duration-500"
+                                        className="animate-in fade-in-0 overflow-hidden rounded-xl transition-all duration-500 sm:rounded-2xl"
                                         style={{
                                             background: '#000',
                                             border: isOvertime ? '2px solid #ef4444' : '1px solid #222',
@@ -293,12 +293,12 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                                         }}
                                     >
                                         <div
-                                            className="px-4 py-4"
+                                            className="px-3 py-3 sm:px-4 sm:py-4"
                                             style={{ borderBottom: `1px solid ${isOvertime ? '#ef444430' : '#1a1a1a'}` }}
                                         >
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="font-bold text-white">{rental.bike.nome}</p>
+                                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                                <div className="flex-1">
+                                                    <p className="text-base font-bold text-white sm:text-lg">{rental.bike.nome}</p>
                                                     <p className="text-sm text-zinc-400">{rental.customer.nome}</p>
                                                     {rental.tempo_solicitado && (
                                                         <p
@@ -311,9 +311,9 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                                                         </p>
                                                     )}
                                                 </div>
-                                                <div className="text-right">
+                                                <div className="text-left sm:text-right">
                                                     <p
-                                                        className="font-mono text-3xl font-bold tabular-nums"
+                                                        className="font-mono text-2xl font-bold tabular-nums sm:text-3xl"
                                                         style={{ color: isOvertime ? '#ef4444' : '#48fd00' }}
                                                     >
                                                         {formatElapsed(rental.start_time, now)}
@@ -325,7 +325,7 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                                             </div>
                                         </div>
 
-                                        <div className="px-4 py-3">
+                                        <div className="px-3 py-3 sm:px-4">
                                             <p className="mb-3 text-xs text-zinc-500">
                                                 Início:{' '}
                                                 {new Date(rental.start_time).toLocaleTimeString('pt-BR', {

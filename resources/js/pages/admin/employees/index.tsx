@@ -7,7 +7,7 @@ import AppLayout from '@/layouts/app-layout';
 import type { Employee, BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/admin/dashboard' },
+    { title: 'Painel Administrativo', href: '/admin/dashboard' },
     { title: 'Funcionários', href: '/admin/employees' },
 ];
 
@@ -34,7 +34,7 @@ export default function EmployeesIndex({ employees }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Funcionários" />
 
-            <div className="flex flex-col gap-4 p-4">
+            <div className="flex flex-col gap-4 p-3 sm:p-4 md:p-6">
                 {props.flash?.success && (
                     <div className="animate-in fade-in-0 rounded-md bg-green-50 px-4 py-3 text-sm text-green-700 ring-1 ring-green-200">
                         {props.flash.success}
@@ -49,14 +49,14 @@ export default function EmployeesIndex({ employees }: Props) {
                 </div>
 
                 <Card>
-                    <CardContent className="p-0">
+                    <CardContent className="overflow-x-auto p-0">
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b bg-muted/50">
-                                    <th className="px-4 py-3 text-left font-medium">Nome</th>
-                                    <th className="px-4 py-3 text-left font-medium">Email</th>
-                                    <th className="px-4 py-3 text-left font-medium">Data de Cadastro</th>
-                                    <th className="px-4 py-3 text-right font-medium">Ações</th>
+                                    <th className="px-2 py-3 text-left font-medium sm:px-4">Nome</th>
+                                    <th className="px-2 py-3 text-left font-medium sm:px-4">Email</th>
+                                    <th className="hidden px-2 py-3 text-left font-medium sm:table-cell sm:px-4">Data de Cadastro</th>
+                                    <th className="px-2 py-3 text-right font-medium sm:px-4">Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -72,11 +72,11 @@ export default function EmployeesIndex({ employees }: Props) {
                                         key={employee.id}
                                         className="border-b transition-colors duration-150 hover:bg-muted/30"
                                     >
-                                        <td className="px-4 py-3 font-medium">{employee.name}</td>
-                                        <td className="px-4 py-3">{employee.email}</td>
-                                        <td className="px-4 py-3 text-xs">{formatDate(employee.created_at)}</td>
-                                        <td className="px-4 py-3 text-right">
-                                            <div className="flex justify-end gap-2">
+                                        <td className="px-2 py-3 font-medium sm:px-4">{employee.name}</td>
+                                        <td className="px-2 py-3 sm:px-4">{employee.email}</td>
+                                        <td className="hidden px-2 py-3 text-xs sm:table-cell sm:px-4">{formatDate(employee.created_at)}</td>
+                                        <td className="px-2 py-3 text-right sm:px-4">
+                                            <div className="flex justify-end gap-1 sm:gap-2">
                                                 <Button variant="outline" size="sm" asChild>
                                                     <a href={`/admin/employees/${employee.id}/edit`}>Editar</a>
                                                 </Button>

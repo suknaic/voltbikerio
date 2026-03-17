@@ -9,7 +9,7 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/admin/dashboard' },
+    { title: 'Painel Administrativo', href: '/admin/dashboard' },
     { title: 'Bicicletas', href: '/admin/bikes' },
     { title: 'Nova Bicicleta', href: '/admin/bikes/create' },
 ];
@@ -44,7 +44,7 @@ export default function CreateBike() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Nova Bicicleta" />
 
-            <div className="p-4">
+            <div className="p-3 sm:p-4 md:p-6">
                 <Card className="mx-auto max-w-md animate-in fade-in-0 duration-300">
                     <CardHeader>
                         <CardTitle>Nova Bicicleta</CardTitle>
@@ -79,11 +79,11 @@ export default function CreateBike() {
                                 )}
                             </div>
 
-                            <div className="flex gap-2 pt-2">
-                                <Button type="submit" disabled={processing}>
+                            <div className="flex flex-col gap-2 pt-2 sm:flex-row">
+                                <Button type="submit" disabled={processing} className="w-full sm:w-auto">
                                     {processing ? 'Salvando...' : 'Salvar'}
                                 </Button>
-                                <Button type="button" variant="outline" asChild>
+                                <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
                                     <a href="/admin/bikes">Cancelar</a>
                                 </Button>
                             </div>
