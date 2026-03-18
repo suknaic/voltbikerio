@@ -25,7 +25,7 @@ class PushSubscriptionController extends Controller
             [
                 'public_key' => $validated['public_key'],
                 'auth_token' => $validated['auth_token'],
-                'content_encoding' => $validated['content_encoding'] ?? 'aesgcm',
+                'content_encoding' => $validated['content_encoding'] ?? 'aes128gcm',
             ],
         );
 

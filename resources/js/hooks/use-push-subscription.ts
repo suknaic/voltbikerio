@@ -25,21 +25,51 @@ function isPushSupported(): boolean {
     );
 }
 
+function isIosDevice(): boolean {
+    if (typeof window === 'undefined') {
+        return false;
+    }
+
+    return /iPad|iPhone|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function isStandaloneMode(): boolean {
+    if (typeof window === 'undefined') {
+        return false;
+    }
+
+    const legacyNavigator = navigator as Navigator & { standalone?: boolean };
+
+    return window.matchMedia('(display-mode: standalone)').matches || legacyNavigator.standalone === true;
+}
+
+export type PushUnsupportedReason = 'ios_requires_pwa' | 'not_supported' | null;
+
 export type PushPermissionState = 'unsupported' | 'default' | 'granted' | 'denied';
 
 export type UsePushSubscriptionReturn = {
     permissionState: PushPermissionState;
+    unsupportedReason: PushUnsupportedReason;
     requestAndSubscribe: () => Promise<void>;
 };
 
 export function usePushSubscription(vapidPublicKey: string | null, isAdmin: boolean): UsePushSubscriptionReturn {
     const [permissionState, setPermissionState] = useState<PushPermissionState>('unsupported');
+    const [unsupportedReason, setUnsupportedReason] = useState<PushUnsupportedReason>(null);
     const hasSubscribedRef = useRef(false);
 
     useEffect(() => {
-        if (!isPushSupported() || !isAdmin || !vapidPublicKey) {
+        if (!isAdmin || !vapidPublicKey) {
             return;
         }
+
+        if (!isPushSupported()) {
+            setPermissionState('unsupported');
+            setUnsupportedReason(isIosDevice() && !isStandaloneMode() ? 'ios_requires_pwa' : 'not_supported');
+            return;
+        }
+
+        setUnsupportedReason(null);
         setPermissionState(Notification.permission as PushPermissionState);
     }, [isAdmin, vapidPublicKey]);
 
@@ -103,5 +133,5 @@ export function usePushSubscription(vapidPublicKey: string | null, isAdmin: bool
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [vapidPublicKey]);
 
-    return { permissionState, requestAndSubscribe };
+    return { permissionState, unsupportedReason, requestAndSubscribe };
 }

@@ -36,7 +36,7 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: AppLayo
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [pushBannerDismissed, setPushBannerDismissed] = useState(false);
 
-    const { permissionState, requestAndSubscribe } = usePushSubscription(vapidPublicKey ?? null, isAdmin);
+    const { permissionState, unsupportedReason, requestAndSubscribe } = usePushSubscription(vapidPublicKey ?? null, isAdmin);
 
     function dismissNotification(id: number): void {
         setNotifications((prev) => prev.filter((n) => n.id !== id));
@@ -107,6 +107,26 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: AppLayo
                     >
                         Ativar
                     </button>
+                    <button
+                        type="button"
+                        aria-label="Fechar banner"
+                        onClick={() => setPushBannerDismissed(true)}
+                        className="cursor-pointer text-zinc-600 hover:text-zinc-300"
+                    >
+                        ✕
+                    </button>
+                </div>
+            )}
+
+            {isAdmin && permissionState === 'unsupported' && unsupportedReason === 'ios_requires_pwa' && !pushBannerDismissed && (
+                <div
+                    className="fixed bottom-4 left-1/2 z-50 flex max-w-[90vw] -translate-x-1/2 items-center gap-3 rounded-2xl px-4 py-3 shadow-xl"
+                    style={{ background: '#0a0a0a', border: '1.5px solid #48fd00', minWidth: '320px' }}
+                >
+                    <span className="text-lg">📲</span>
+                    <p className="flex-1 text-xs text-zinc-200">
+                        No iPhone, ative push instalando o app: Safari → Compartilhar → Adicionar a Tela de Início. Depois abra o app instalado e toque em Ativar notificações.
+                    </p>
                     <button
                         type="button"
                         aria-label="Fechar banner"
