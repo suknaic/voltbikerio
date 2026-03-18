@@ -200,27 +200,36 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                                         key={bike.id}
                                         type="button"
                                         onClick={() => selectBike(bike)}
-                                        className="rounded-xl border p-3 text-left transition-all duration-200 hover:-translate-y-0.5 active:scale-95 sm:rounded-2xl sm:p-4"
+                                        className="group relative overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 hover:-translate-y-1 active:scale-[0.98] sm:p-4"
                                         style={{
-                                            background: isSelected ? 'linear-gradient(145deg, #020402, #000)' : '#111',
-                                            borderColor: isSelected ? '#48fd00' : '#222',
-                                            boxShadow: isSelected ? '0 0 16px #48fd0040' : '0 8px 20px -18px #fff3',
+                                            background: isSelected ? 'linear-gradient(160deg, #071306 0%, #010101 60%, #000000 100%)' : 'linear-gradient(160deg, #141414 0%, #0a0a0a 100%)',
+                                            borderColor: isSelected ? '#48fd00' : '#2a2a2a',
+                                            boxShadow: isSelected ? '0 0 0 1px #48fd0060, 0 20px 40px -26px #48fd00' : '0 18px 32px -26px #000',
                                             color: 'white',
                                         }}
                                     >
-                                        <div className="mb-2 flex items-center justify-center">
+                                        <div
+                                            className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                                            style={{ background: 'radial-gradient(circle at top right, #48fd0015 0%, transparent 55%)' }}
+                                        />
+                                        <div className="relative mb-3 h-24 overflow-hidden rounded-xl border border-zinc-800/80 bg-zinc-950/80">
                                             <img
                                                 src={bike.foto_url ? `/${bike.foto_url}` : '/assets/bike.webp'}
                                                 alt={bike.nome}
-                                                className="h-14 w-14 rounded-lg object-cover sm:h-16 sm:w-16"
+                                                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                                             />
                                         </div>
-                                        <p className="text-sm font-semibold leading-tight sm:text-base">{bike.nome}</p>
-                                        <p className="mt-1 text-xs" style={{ color: '#48fd00' }}>
-                                            R$ {pricePerMinute.toFixed(2)}/min
-                                        </p>
+                                        <p className="relative text-sm font-semibold leading-tight text-zinc-100 sm:text-base">{bike.nome}</p>
+                                        <div className="relative mt-2 flex items-center justify-between">
+                                            <p className="text-xs font-semibold" style={{ color: '#48fd00' }}>
+                                                R$ {pricePerMinute.toFixed(2)}/min
+                                            </p>
+                                            <span className="rounded-full border border-zinc-700 bg-zinc-900/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-400">
+                                                Pronta
+                                            </span>
+                                        </div>
                                         {isSelected && (
-                                            <span className="mt-2 block text-xs font-bold" style={{ color: '#fbf100' }}>
+                                            <span className="relative mt-2 block text-xs font-bold" style={{ color: '#fbf100' }}>
                                                 Selecionada ✓
                                             </span>
                                         )}
