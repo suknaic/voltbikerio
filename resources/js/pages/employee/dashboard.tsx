@@ -472,8 +472,17 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                 </section>
             </div>
 
-            <Dialog open={billingOpen} onOpenChange={setBillingOpen}>
-                <DialogContent className="!top-auto !left-0 !translate-x-0 !translate-y-0 bottom-0 z-[60] max-h-[88vh] w-full max-w-none overflow-y-auto rounded-t-3xl rounded-b-none border-zinc-800 bg-black p-0">
+            <Dialog
+                open={billingOpen}
+                onOpenChange={(open) => {
+                    if (open) setBillingOpen(true);
+                }}
+            >
+                <DialogContent
+                    onEscapeKeyDown={(event) => event.preventDefault()}
+                    onInteractOutside={(event) => event.preventDefault()}
+                    className="[&>button]:hidden left-0 top-auto bottom-0 z-[60] max-h-[88vh] w-full max-w-none translate-x-0 translate-y-0 overflow-y-auto rounded-t-3xl rounded-b-none border-zinc-800 bg-black p-0 md:top-1/2 md:bottom-auto md:left-1/2 md:max-h-[85vh] md:w-full md:max-w-xl md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-3xl"
+                >
                     <div className="mx-auto w-full max-w-xl px-4 pb-8 pt-3">
                         <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-zinc-700" />
                         <DialogTitle className="text-center text-xs font-bold uppercase tracking-[0.18em]" style={{ color: '#fbf100' }}>
