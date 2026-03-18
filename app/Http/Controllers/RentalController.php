@@ -46,21 +46,30 @@ class RentalController extends Controller
         return redirect()->route('employee.dashboard')->with('success', 'Aluguel iniciado com sucesso!');
     }
 
-    public function billing(Rental $rental): Response
+    public function billing(Rental $rental): RedirectResponse
     {
         $rental->load(['bike', 'customer']);
 
-        return Inertia::render('employee/rentals/billing', [
-            'rental' => $rental,
-            'preco_por_minuto' => (string) \App\Models\Setting::get('preco_por_minuto', '0.25'),
+        return redirect()->route('employee.dashboard')->with('lastRental', [
+            'bike_nome' => $rental->bike->nome,
+            'customer_nome' => $rental->customer->nome,
+            'customer_telefone' => $rental->customer->telefone,
+            'total_minutes' => $rental->total_minutes ?? 0,
+            'valor_total' => (float) ($rental->valor_total ?? 0),
         ]);
     }
 
     public function end(Rental $rental): RedirectResponse
     {
-        $this->rentalService->endRental($rental);
+        $rental = $this->rentalService->endRental($rental);
 
-        return redirect()->route('employee.rentals.billing', $rental);
+        return redirect()->route('employee.dashboard')->with('lastRental', [
+            'bike_nome' => $rental->bike->nome,
+            'customer_nome' => $rental->customer->nome,
+            'customer_telefone' => $rental->customer->telefone,
+            'total_minutes' => $rental->total_minutes ?? 0,
+            'valor_total' => (float) ($rental->valor_total ?? 0),
+        ]);
     }
 
     public function history(Request $request): Response

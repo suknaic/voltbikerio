@@ -2,6 +2,7 @@ import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { Bike as BikeIcon, Clock3, Wallet } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import InputError from '@/components/input-error';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
@@ -30,6 +31,18 @@ function estimatedCost(startTime: string, pricePerMin: string, now: number): str
     return (minutes * parseFloat(pricePerMin)).toFixed(2);
 }
 
+function formatDuration(minutes: number): string {
+    if (minutes < 60) return `${minutes} min`;
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (m === 0) return `${h}h`;
+    return `${h}h ${m}min`;
+}
+
+function formatMoney(value: number): string {
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
 function playAlert(audio: HTMLAudioElement | null): void {
     if (!audio) return;
     audio.currentTime = 0;
@@ -37,13 +50,25 @@ function playAlert(audio: HTMLAudioElement | null): void {
 }
 
 export default function EmployeeDashboard({ availableBikes, activeRentals, preco_por_minuto }: Props) {
-    const { props } = usePage<{ flash?: { error?: string } }>();
+    const { props } = usePage<{
+        flash?: {
+            error?: string;
+            lastRental?: {
+                bike_nome: string;
+                customer_nome: string;
+                customer_telefone: string;
+                total_minutes: number;
+                valor_total: number;
+            };
+        };
+    }>();
     const pricePerMinute = parseFloat(preco_por_minuto);
 
     const [selectedBike, setSelectedBike] = useState<Bike | null>(null);
     const [now, setNow] = useState(() => Date.now());
     const alertedRef = useRef<Set<number>>(new Set());
     const alertAudioRef = useRef<HTMLAudioElement | null>(null);
+    const [billingOpen, setBillingOpen] = useState<boolean>(Boolean(props.flash?.lastRental));
 
     useEffect(() => {
         const id = setInterval(() => setNow(Date.now()), 1000);
@@ -96,6 +121,12 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
             cancelSelection();
         }
     }, [availableBikes, selectedBike]);
+
+    useEffect(() => {
+        if (props.flash?.lastRental) {
+            setBillingOpen(true);
+        }
+    }, [props.flash?.lastRental]);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         bike_id: '',
@@ -440,6 +471,65 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                     )}
                 </section>
             </div>
+
+            <Dialog open={billingOpen} onOpenChange={setBillingOpen}>
+                <DialogContent className="!top-auto !left-0 !translate-x-0 !translate-y-0 bottom-0 z-[60] max-h-[88vh] w-full max-w-none overflow-y-auto rounded-t-3xl rounded-b-none border-zinc-800 bg-black p-0">
+                    <div className="mx-auto w-full max-w-xl px-4 pb-8 pt-3">
+                        <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-zinc-700" />
+                        <DialogTitle className="text-center text-xs font-bold uppercase tracking-[0.18em]" style={{ color: '#fbf100' }}>
+                            Cobrança
+                        </DialogTitle>
+
+                        {props.flash?.lastRental && (
+                            <div className="mt-4 flex flex-col gap-3">
+                                <div
+                                    className="rounded-3xl border px-4 py-5"
+                                    style={{ background: 'linear-gradient(155deg, #0f1608 0%, #040404 55%, #000000 100%)', borderColor: '#48fd0040' }}
+                                >
+                                    <p className="text-center text-lg font-bold text-white">{props.flash.lastRental.bike_nome}</p>
+                                    <p className="mt-2 text-center text-xs font-semibold" style={{ color: '#48fd00' }}>
+                                        R$ {pricePerMinute.toFixed(2)}/min
+                                    </p>
+                                </div>
+
+                                <div className="rounded-3xl border border-zinc-800 bg-zinc-950/80 p-4">
+                                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-500">Cliente</p>
+                                    <p className="text-lg font-bold text-white">{props.flash.lastRental.customer_nome}</p>
+                                    <p className="text-sm text-zinc-400">{props.flash.lastRental.customer_telefone}</p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="rounded-3xl border border-zinc-800 bg-zinc-950/80 p-4 text-center">
+                                        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Tempo total</p>
+                                        <p className="mt-1 text-xl font-bold text-white">
+                                            {formatDuration(props.flash.lastRental.total_minutes)}
+                                        </p>
+                                        <p className="text-xs text-zinc-600">{props.flash.lastRental.total_minutes} min</p>
+                                    </div>
+                                    <div
+                                        className="rounded-3xl border-2 p-4 text-center"
+                                        style={{ background: 'linear-gradient(150deg, #060906 0%, #000000 100%)', borderColor: '#48fd00' }}
+                                    >
+                                        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Total</p>
+                                        <p className="mt-1 text-2xl font-bold tabular-nums" style={{ color: '#48fd00' }}>
+                                            {formatMoney(props.flash.lastRental.valor_total)}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setBillingOpen(false)}
+                                    className="mt-1 w-full rounded-3xl py-4 text-base font-bold transition-all hover:opacity-90 active:scale-[0.98]"
+                                    style={{ background: '#48fd00', color: '#000' }}
+                                >
+                                    Fechar
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }

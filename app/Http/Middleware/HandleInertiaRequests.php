@@ -46,6 +46,7 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => session('success'),
                 'error' => session('error'),
+                'lastRental' => session('lastRental'),
             ],
             'vapidPublicKey' => config('services.vapid.public_key'),
         ];
