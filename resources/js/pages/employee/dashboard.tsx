@@ -1,4 +1,5 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Bike as BikeIcon, Clock3, Wallet } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
@@ -29,36 +30,34 @@ function estimatedCost(startTime: string, pricePerMin: string, now: number): str
     return (minutes * parseFloat(pricePerMin)).toFixed(2);
 }
 
-function playAlert(): void {
-    try {
-        const AudioCtx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.type = 'sine';
-        osc.frequency.value = 880;
-        gain.gain.setValueAtTime(0.4, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.8);
-    } catch {
-        // AudioContext indisponível no ambiente
-    }
+function playAlert(audio: HTMLAudioElement | null): void {
+    if (!audio) return;
+    audio.currentTime = 0;
+    void audio.play();
 }
 
 export default function EmployeeDashboard({ availableBikes, activeRentals, preco_por_minuto }: Props) {
     const { props } = usePage<{ flash?: { error?: string } }>();
+    const pricePerMinute = parseFloat(preco_por_minuto);
 
     const [selectedBike, setSelectedBike] = useState<Bike | null>(null);
     const [now, setNow] = useState(() => Date.now());
     const alertedRef = useRef<Set<number>>(new Set());
+    const alertAudioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
         const id = setInterval(() => setNow(Date.now()), 1000);
         return () => clearInterval(id);
+    }, []);
+
+    useEffect(() => {
+        alertAudioRef.current = new Audio('/assets/bike-bell.mp3');
+        alertAudioRef.current.preload = 'auto';
+
+        return () => {
+            alertAudioRef.current?.pause();
+            alertAudioRef.current = null;
+        };
     }, []);
 
     // Dispara alerta sonoro quando o tempo solicitado for atingido
@@ -70,10 +69,33 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
 
             if (elapsedMin >= rental.tempo_solicitado && !alertedRef.current.has(rental.id)) {
                 alertedRef.current.add(rental.id);
-                playAlert();
+                playAlert(alertAudioRef.current);
             }
         }
     }, [now, activeRentals]);
+
+    useEffect(() => {
+        if (!window.Echo) return;
+
+        const channel = window.Echo.channel('bikes');
+
+        channel.listen('.BikeAvailabilityChanged', () => {
+            if (window.location.pathname === '/employee/dashboard') {
+                router.reload({ only: ['availableBikes'] });
+            }
+        });
+
+        return () => window.Echo.leaveChannel('bikes');
+    }, []);
+
+    useEffect(() => {
+        if (!selectedBike) return;
+
+        const stillAvailable = availableBikes.some((bike) => bike.id === selectedBike.id);
+        if (!stillAvailable) {
+            cancelSelection();
+        }
+    }, [availableBikes, selectedBike]);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         bike_id: '',
@@ -91,6 +113,15 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
         setSelectedBike(null);
         reset();
     }
+
+    function capitalizeName(name: string): string {
+        return name
+            .toLowerCase() // deixa tudo minúsculo
+            .split(' ')    // separa por espaço
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    }
+
 
     function handleStart(e: React.FormEvent) {
         e.preventDefault();
@@ -117,6 +148,33 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                     </div>
                 )}
 
+                <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div className="rounded-2xl border border-[#48fd0040] bg-gradient-to-br from-[#0f1608] via-black to-black p-4 shadow-[0_10px_25px_-18px_#48fd00]">
+                        <div className="mb-3 flex items-center justify-between">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Disponíveis</p>
+                            <BikeIcon className="h-4 w-4 text-[#48fd00]" />
+                        </div>
+                        <p className="text-3xl font-bold text-white">{availableBikes.length}</p>
+                        <p className="mt-1 text-xs text-[#48fd00]">Prontas para iniciar aluguel</p>
+                    </div>
+                    <div className="rounded-2xl border border-[#fbf10040] bg-gradient-to-br from-[#171602] via-black to-black p-4 shadow-[0_10px_25px_-18px_#fbf100]">
+                        <div className="mb-3 flex items-center justify-between">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Em andamento</p>
+                            <Clock3 className="h-4 w-4 text-[#fbf100]" />
+                        </div>
+                        <p className="text-3xl font-bold text-white">{activeRentals.length}</p>
+                        <p className="mt-1 text-xs text-[#fbf100]">Aluguéis ativos agora</p>
+                    </div>
+                    <div className="rounded-2xl border border-zinc-800 bg-gradient-to-br from-zinc-900 via-black to-black p-4 shadow-[0_10px_25px_-18px_#a1a1aa]">
+                        <div className="mb-3 flex items-center justify-between">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Valor por minuto</p>
+                            <Wallet className="h-4 w-4 text-zinc-300" />
+                        </div>
+                        <p className="text-3xl font-bold text-white">R$ {pricePerMinute.toFixed(2)}</p>
+                        <p className="mt-1 text-xs text-zinc-400">Cobrança base da operação</p>
+                    </div>
+                </section>
+
                 {/* Available Bikes */}
                 <section>
                     <div className="mb-3 flex items-center justify-between">
@@ -142,11 +200,11 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                                         key={bike.id}
                                         type="button"
                                         onClick={() => selectBike(bike)}
-                                        className="rounded-xl p-3 text-left transition-all duration-200 active:scale-95 sm:rounded-2xl sm:p-4"
+                                        className="rounded-xl border p-3 text-left transition-all duration-200 hover:-translate-y-0.5 active:scale-95 sm:rounded-2xl sm:p-4"
                                         style={{
-                                            background: isSelected ? '#000' : '#111',
-                                            border: `2px solid ${isSelected ? '#48fd00' : '#222'}`,
-                                            boxShadow: isSelected ? '0 0 16px #48fd0040' : 'none',
+                                            background: isSelected ? 'linear-gradient(145deg, #020402, #000)' : '#111',
+                                            borderColor: isSelected ? '#48fd00' : '#222',
+                                            boxShadow: isSelected ? '0 0 16px #48fd0040' : '0 8px 20px -18px #fff3',
                                             color: 'white',
                                         }}
                                     >
@@ -159,7 +217,7 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                                         </div>
                                         <p className="text-sm font-semibold leading-tight sm:text-base">{bike.nome}</p>
                                         <p className="mt-1 text-xs" style={{ color: '#48fd00' }}>
-                                            R$ {parseFloat(preco_por_minuto).toFixed(2)}/min
+                                            R$ {pricePerMinute.toFixed(2)}/min
                                         </p>
                                         {isSelected && (
                                             <span className="mt-2 block text-xs font-bold" style={{ color: '#fbf100' }}>
@@ -184,7 +242,7 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                                     </p>
                                     <p className="font-bold text-white">{selectedBike.nome}</p>
                                     <p className="text-xs" style={{ color: '#48fd00' }}>
-                                        R$ {parseFloat(preco_por_minuto).toFixed(2)}/min
+                                        R$ {pricePerMinute.toFixed(2)}/min
                                     </p>
                                 </div>
                                 <button type="button" onClick={cancelSelection} className="text-xs underline" style={{ color: '#666' }}>
@@ -298,8 +356,8 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                                         >
                                             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                                 <div className="flex-1">
-                                                    <p className="text-base font-bold text-white sm:text-lg">{rental.bike.nome}</p>
-                                                    <p className="text-sm text-zinc-400">{rental.customer.nome}</p>
+                                                    <p className="text-base font-bold text-white sm:text-lg mb-3">{`🚲 ${rental.bike.nome}`}</p>
+                                                    <p className="text-base font-bold text-white sm:text-lg mb-2">Alugado por: {capitalizeName(rental.customer.nome)} </p>
                                                     {rental.tempo_solicitado && (
                                                         <p
                                                             className="mt-0.5 text-xs font-semibold"
@@ -311,16 +369,36 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                                                         </p>
                                                     )}
                                                 </div>
-                                                <div className="text-left sm:text-right">
-                                                    <p
-                                                        className="font-mono text-2xl font-bold tabular-nums sm:text-3xl"
-                                                        style={{ color: isOvertime ? '#ef4444' : '#48fd00' }}
-                                                    >
-                                                        {formatElapsed(rental.start_time, now)}
-                                                    </p>
-                                                    <p className="text-sm font-semibold" style={{ color: '#fbf100' }}>
-                                                        ≈ R$ {estimatedCost(rental.start_time, preco_por_minuto, now)}
-                                                    </p>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const message = encodeURIComponent(
+                                                            `Olá! O tempo solicitado de ${rental.tempo_solicitado} minutos para a bicicleta ${rental.bike.nome} já se esgotou. Por favor, dirija-se à base para devolver a bike. Obrigado!`
+                                                        );
+                                                        window.open(`https://wa.me/${rental.customer.telefone.replace(/\D/g, '')}?text=${message}`, '_blank');
+                                                    }}
+                                                    className="rounded-xl border border-zinc-800 bg-zinc-950/80 px-3 py-2 text-left transition-opacity hover:opacity-80"
+                                                    style={{ color: isOvertime ? '#ef4444' : '#48fd00' }}
+                                                >
+                                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Contato</p>
+                                                    <p className="font-mono text-sm font-bold">📞 {rental.customer.telefone}</p>
+                                                </button>
+                                                <div className="grid grid-cols-2 gap-2 text-left sm:text-right">
+                                                    <div className="rounded-xl border border-zinc-800 bg-zinc-950/80 px-3 py-2">
+                                                        <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Tempo</p>
+                                                        <p
+                                                            className="font-mono text-lg font-bold tabular-nums sm:text-xl"
+                                                            style={{ color: isOvertime ? '#ef4444' : '#48fd00' }}
+                                                        >
+                                                            {formatElapsed(rental.start_time, now)}
+                                                        </p>
+                                                    </div>
+                                                    <div className="rounded-xl border border-zinc-800 bg-zinc-950/80 px-3 py-2">
+                                                        <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Estimado</p>
+                                                        <p className="text-base font-bold text-[#fbf100] sm:text-lg">
+                                                            R$ {estimatedCost(rental.start_time, preco_por_minuto, now)}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -332,8 +410,7 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                                                     hour: '2-digit',
                                                     minute: '2-digit',
                                                 })}
-                                                {' · '}
-                                                {rental.customer.telefone}
+
                                             </p>
                                             <button
                                                 type="button"

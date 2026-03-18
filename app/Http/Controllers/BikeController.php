@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\BikeAvailabilityChanged;
 use App\Http\Requests\StoreBikeRequest;
 use App\Http\Requests\UpdateBikeRequest;
 use App\Models\Bike;
@@ -86,6 +87,7 @@ class BikeController extends Controller
     {
         $bike->disponivel = ! $bike->disponivel;
         $bike->save();
+        BikeAvailabilityChanged::dispatch($bike);
 
         return redirect()->route('admin.bikes.index');
     }
