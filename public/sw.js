@@ -83,7 +83,7 @@ self.addEventListener('push', (event) => {
             }
 
             // App is closed or in background — show OS notification.
-            return self.registration.showNotification(data.title ?? 'Bike Rental', {
+            return self.registration.showNotification(data.title ?? 'VoltBikeRio', {
                 body: data.body ?? '',
                 icon: data.icon ?? '/icons/icon-192.png',
                 badge: data.badge ?? '/icons/icon-192.png',

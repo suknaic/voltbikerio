@@ -31,7 +31,7 @@
         }
     </style>
 
-    <title inertia>{{ config('app.name', 'Laravel') }}</title>
+    <title inertia>{{ config('app.name', 'VoltBikeRio') }}</title>
 
     <link rel="icon" href="/assets/volt-icon.png" type="image/png">
     <link rel="apple-touch-icon" href="/assets/volt-icon.png">

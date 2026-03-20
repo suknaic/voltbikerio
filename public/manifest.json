@@ -1,6 +1,6 @@
 {
-    "name": "VoltBiker - Aluguel de Bicicletas",
-    "short_name": "VoltBiker",
+    "name": "VoltBikeRio - Aluguel de Bicicletas",
+    "short_name": "VoltBikeRio",
     "description": "Sistema de aluguel de bicicletas elétricas por minuto",
     "lang": "pt-BR",
     "start_url": "/dashboard",
