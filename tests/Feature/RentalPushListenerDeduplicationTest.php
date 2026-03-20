@@ -9,31 +9,31 @@ use Illuminate\Events\CallQueuedListener;
 use Illuminate\Support\Facades\Queue;
 
 test('rental started queues push listener only once', function () {
-    Queue::fake();
+  Queue::fake();
 
-    $rental = Rental::factory()->create();
+  $rental = Rental::factory()->create();
 
-    event(new RentalStarted($rental));
+  event(new RentalStarted($rental));
 
-    Queue::assertPushed(
-        CallQueuedListener::class,
-        fn (CallQueuedListener $job): bool => $job->class === SendRentalStartedPushNotification::class,
-    );
+  Queue::assertPushed(
+    CallQueuedListener::class,
+    fn(CallQueuedListener $job): bool => $job->class === SendRentalStartedPushNotification::class,
+  );
 
-    Queue::assertPushedTimes(CallQueuedListener::class, 1);
+  Queue::assertPushedTimes(CallQueuedListener::class, 1);
 });
 
 test('rental ended queues push listener only once', function () {
-    Queue::fake();
+  Queue::fake();
 
-    $rental = Rental::factory()->create();
+  $rental = Rental::factory()->create();
 
-    event(new RentalEnded($rental));
+  event(new RentalEnded($rental));
 
-    Queue::assertPushed(
-        CallQueuedListener::class,
-        fn (CallQueuedListener $job): bool => $job->class === SendRentalEndedPushNotification::class,
-    );
+  Queue::assertPushed(
+    CallQueuedListener::class,
+    fn(CallQueuedListener $job): bool => $job->class === SendRentalEndedPushNotification::class,
+  );
 
-    Queue::assertPushedTimes(CallQueuedListener::class, 1);
+  Queue::assertPushedTimes(CallQueuedListener::class, 1);
 });
