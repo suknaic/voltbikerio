@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,7 +44,7 @@ export default function EmployeesIndex({ employees }: Props) {
                 <div className="flex items-center justify-between">
                     <h1 className="text-xl font-semibold">Funcionários</h1>
                     <Button asChild>
-                        <a href="/admin/employees/create">Novo Funcionário</a>
+                        <Link href="/admin/employees/create">Novo Funcionário</Link>
                     </Button>
                 </div>
 
@@ -78,7 +78,7 @@ export default function EmployeesIndex({ employees }: Props) {
                                         <td className="px-2 py-3 text-right sm:px-4">
                                             <div className="flex justify-end gap-1 sm:gap-2">
                                                 <Button variant="outline" size="sm" asChild>
-                                                    <a href={`/admin/employees/${employee.id}/edit`}>Editar</a>
+                                                    <Link href={`/admin/employees/${employee.id}/edit`}>Editar</Link>
                                                 </Button>
                                                 <Button
                                                     variant="destructive"

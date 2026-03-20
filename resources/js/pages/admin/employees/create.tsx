@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -93,7 +93,7 @@ export default function CreateEmployee() {
                                     {processing ? 'Salvando...' : 'Salvar'}
                                 </Button>
                                 <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
-                                    <a href="/admin/employees">Cancelar</a>
+                                    <Link href="/admin/employees">Cancelar</Link>
                                 </Button>
                             </div>
                         </form>

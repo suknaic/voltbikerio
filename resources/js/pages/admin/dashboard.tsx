@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import type { Bike, BreadcrumbItem, Rental } from '@/types';
@@ -81,7 +81,7 @@ export default function AdminDashboard({ activeRentals: initialRentals, bikes, t
                 {/* Quick Actions */}
                 <section>
                     <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-2 lg:grid-cols-4">
-                        <a href="/admin/bikes" className="block">
+                        <Link href="/admin/bikes" className="block">
                             <div
                                 className="flex cursor-pointer items-center gap-3 rounded-xl p-3 transition-all hover:opacity-90 sm:rounded-2xl sm:p-4"
                                 style={{ background: '#111', border: '1px solid #222' }}
@@ -92,8 +92,8 @@ export default function AdminDashboard({ activeRentals: initialRentals, bikes, t
                                     <p className="text-xs text-zinc-500">Gerenciar frota</p>
                                 </div>
                             </div>
-                        </a>
-                        <a href="/admin/employees" className="block">
+                        </Link>
+                        <Link href="/admin/employees" className="block">
                             <div
                                 className="flex cursor-pointer items-center gap-3 rounded-xl p-3 transition-all hover:opacity-90 sm:rounded-2xl sm:p-4"
                                 style={{ background: '#111', border: '1px solid #222' }}
@@ -104,8 +104,8 @@ export default function AdminDashboard({ activeRentals: initialRentals, bikes, t
                                     <p className="text-xs text-zinc-500">Gerenciar equipe</p>
                                 </div>
                             </div>
-                        </a>
-                        <a href="/admin/rentals/history" className="block">
+                        </Link>
+                        <Link href="/admin/rentals/history" className="block">
                             <div
                                 className="flex cursor-pointer items-center gap-3 rounded-xl p-3 transition-all hover:opacity-90 sm:rounded-2xl sm:p-4"
                                 style={{ background: '#111', border: '1px solid #222' }}
@@ -116,8 +116,8 @@ export default function AdminDashboard({ activeRentals: initialRentals, bikes, t
                                     <p className="text-xs text-zinc-500">Ver relatórios</p>
                                 </div>
                             </div>
-                        </a>
-                        <a href="/admin/settings" className="block">
+                        </Link>
+                        <Link href="/admin/settings" className="block">
                             <div
                                 className="flex cursor-pointer items-center gap-3 rounded-xl p-3 transition-all hover:opacity-90 sm:rounded-2xl sm:p-4"
                                 style={{ background: '#111', border: '1px solid #222' }}
@@ -128,7 +128,7 @@ export default function AdminDashboard({ activeRentals: initialRentals, bikes, t
                                     <p className="text-xs text-zinc-500">Ajustes do sistema</p>
                                 </div>
                             </div>
-                        </a>
+                        </Link>
                     </div>
                 </section>
 

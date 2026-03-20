@@ -35,6 +35,7 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: AppLayo
     const isAdmin = auth?.role === 'admin';
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [pushBannerDismissed, setPushBannerDismissed] = useState(false);
+    const [isRequestingPush, setIsRequestingPush] = useState(false);
 
     const { permissionState, unsupportedReason, requestAndSubscribe } = usePushSubscription(vapidPublicKey ?? null, isAdmin);
 
@@ -94,18 +95,26 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: AppLayo
             {/* Push notification opt-in banner — only shown to admin when permission not yet decided */}
             {isAdmin && permissionState === 'default' && !pushBannerDismissed && vapidPublicKey && (
                 <div
-                    className="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-2xl px-4 py-3 shadow-xl"
-                    style={{ background: '#0a0a0a', border: '1.5px solid #48fd00', minWidth: '280px' }}
+                    className="fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-[560px] items-center gap-3 rounded-2xl px-4 py-3 shadow-xl sm:inset-x-auto sm:bottom-4 sm:right-4 sm:mx-0"
+                    style={{ background: '#0a0a0a', border: '1.5px solid #48fd00' }}
                 >
                     <span className="text-lg">🔔</span>
                     <p className="flex-1 text-sm text-white">Ativar notificações push?</p>
                     <button
                         type="button"
-                        onClick={() => void requestAndSubscribe()}
+                        disabled={isRequestingPush}
+                        onClick={async () => {
+                            try {
+                                setIsRequestingPush(true);
+                                await requestAndSubscribe();
+                            } finally {
+                                setIsRequestingPush(false);
+                            }
+                        }}
                         className="rounded-lg px-3 py-1 text-xs font-bold"
                         style={{ background: '#48fd00', color: '#000' }}
                     >
-                        Ativar
+                        {isRequestingPush ? 'Aguarde...' : 'Ativar'}
                     </button>
                     <button
                         type="button"

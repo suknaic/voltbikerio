@@ -1,10 +1,10 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
 import type { Bike,  BreadcrumbItem } from '@/types';
 
@@ -88,7 +88,7 @@ export default function EditBike({ bike }: Props) {
                                     {processing ? 'Salvando...' : 'Salvar'}
                                 </Button>
                                 <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
-                                    <a href="/admin/bikes">Cancelar</a>
+                                    <Link href="/admin/bikes">Cancelar</Link>
                                 </Button>
                             </div>
                         </form>

@@ -1,4 +1,4 @@
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
@@ -66,7 +66,7 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                 <div className="flex items-center justify-between">
                     <h1 className="text-xl font-semibold">Bicicletas</h1>
                     <Button asChild>
-                        <a href="/admin/bikes/create">Nova Bicicleta</a>
+                        <Link href="/admin/bikes/create">Nova Bicicleta</Link>
                     </Button>
                 </div>
 
@@ -132,7 +132,7 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                                         <td className="px-2 py-3 text-right sm:px-4">
                                             <div className="flex justify-end gap-1 sm:gap-2">
                                                 <Button variant="outline" size="sm" asChild>
-                                                    <a href={`/admin/bikes/${bike.id}/edit`}>Editar</a>
+                                                    <Link href={`/admin/bikes/${bike.id}/edit`}>Editar</Link>
                                                 </Button>
                                                 <Button
                                                     variant="destructive"
