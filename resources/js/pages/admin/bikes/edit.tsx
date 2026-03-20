@@ -20,7 +20,8 @@ export default function EditBike({ bike }: Props) {
     ];
 
     const [preview, setPreview] = useState<string | null>(bike.foto_url ? `/${bike.foto_url}` : null);
-    const { data, setData, patch, processing, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
+        _method: 'patch',
         nome: bike.nome,
         foto: null as File | null,
     });
@@ -39,8 +40,8 @@ export default function EditBike({ bike }: Props) {
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        patch(`/admin/bikes/${bike.id}`, {
-            forceFormData: data.foto !== null,
+        post(`/admin/bikes/${bike.id}`, {
+            forceFormData: true,
         });
     }
 
