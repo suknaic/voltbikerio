@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateEmployeeRequest extends FormRequest
 {
@@ -21,11 +23,15 @@ class UpdateEmployeeRequest extends FormRequest
      */
     public function rules(): array
     {
-        $userId = $this->route('employee');
+        $employee = $this->route('employee');
+
+        $employeeId = $employee instanceof User
+            ? $employee->getKey()
+            : $employee;
 
         return [
             'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email', "unique:users,email,{$userId}"],
+            'email' => ['required', 'email', Rule::unique(User::class)->ignore($employeeId)],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ];
     }
