@@ -14,7 +14,7 @@ class UpdateBikeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nome' => ['required', 'string', 'max:100'],
+            'nome' => ['sometimes', 'required', 'string', 'max:100'],
             'foto' => ['nullable', 'image', 'mimes:jpeg,png,webp', 'max:2048'],
         ];
     }
