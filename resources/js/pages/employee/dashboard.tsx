@@ -245,7 +245,7 @@ export default function EmployeeDashboard({ availableBikes, activeRentals, preco
                                         />
                                         <div className="relative mb-3 h-24 overflow-hidden rounded-xl border border-zinc-800/80 bg-zinc-950/80">
                                             <img
-                                                src={bike.foto_url ? `/${bike.foto_url}` : '/assets/bike.webp'}
+                                                src={bike.foto_url ? `/${bike.foto_url}` : '/assets/bike-placeholder.svg'}
                                                 alt={bike.nome}
                                                 className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                                             />

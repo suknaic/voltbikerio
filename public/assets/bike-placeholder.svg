@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400" role="img" aria-label="Sem foto da bike">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1f2937" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="400" fill="url(#bg)" />
+  <g fill="none" stroke="#9ca3af" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+    <circle cx="190" cy="285" r="70" />
+    <circle cx="450" cy="285" r="70" />
+    <path d="M190 285l85-120h88l87 120" />
+    <path d="M275 165l-45 0" />
+    <path d="M338 165l0 55" />
+  </g>
+  <text x="320" y="80" text-anchor="middle" fill="#e5e7eb" font-size="32" font-family="Segoe UI, Arial, sans-serif" font-weight="600">
+    Bike sem foto
+  </text>
+</svg>

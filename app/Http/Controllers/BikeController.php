@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateBikeRequest;
 use App\Models\Bike;
 use App\Repositories\BikeRepository;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\File;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -33,6 +34,7 @@ class BikeController extends Controller
         $data = collect($request->validated())->except('foto')->toArray();
 
         if ($request->hasFile('foto')) {
+            File::ensureDirectoryExists(public_path('assets/upload/foto/bike'));
             $file = $request->file('foto');
             $filename = uniqid('bike_') . '.' . $file->getClientOriginalExtension();
             $file->move(public_path('assets/upload/foto/bike'), $filename);
@@ -61,6 +63,7 @@ class BikeController extends Controller
                 unlink(public_path($bike->foto_url));
             }
 
+            File::ensureDirectoryExists(public_path('assets/upload/foto/bike'));
             $file = $request->file('foto');
             $filename = uniqid('bike_') . '.' . $file->getClientOriginalExtension();
             $file->move(public_path('assets/upload/foto/bike'), $filename);

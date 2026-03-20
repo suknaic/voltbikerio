@@ -75,7 +75,7 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b bg-muted/50">
-                                    <th className="hidden px-2 py-3 text-left font-medium sm:table-cell sm:px-4">Foto</th>
+                                    <th className="px-2 py-3 text-left font-medium sm:px-4">Foto</th>
                                     <th className="px-2 py-3 text-left font-medium sm:px-4">Nome</th>
                                     <th className="px-2 py-3 text-left font-medium sm:table-cell sm:px-4">Disponível para Aluguel</th>
                                     <th className="px-2 py-3 text-left font-medium sm:px-4">Status</th>
@@ -95,10 +95,13 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                                         key={bike.id}
                                         className="border-b transition-colors duration-150 hover:bg-muted/30"
                                     >
-                                        <td className="hidden px-2 py-3 sm:table-cell sm:px-4">
+                                        <td className="px-2 py-3 sm:px-4">
                                             <img
-                                                src={bike.foto_url ? `/${bike.foto_url}` : '/assets/bike.webp'}
+                                                src={bike.foto_url ? `/${bike.foto_url}` : '/assets/bike-placeholder.svg'}
                                                 alt={bike.nome}
+                                                onError={(event) => {
+                                                    event.currentTarget.src = '/assets/bike-placeholder.svg';
+                                                }}
                                                 className="h-10 w-10 rounded-md object-cover sm:h-12 sm:w-12"
                                             />
                                         </td>
