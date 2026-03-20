@@ -33,10 +33,12 @@
 
     <title inertia>{{ config('app.name', 'VoltBikeRio') }}</title>
 
-    <link rel="icon" href="/assets/volt-icon.png" type="image/png">
-    <link rel="apple-touch-icon" href="/assets/volt-icon.png">
+    <link rel="icon" href="/icons/icon-192.png" type="image/png">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
