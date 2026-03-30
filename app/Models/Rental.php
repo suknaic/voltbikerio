@@ -18,6 +18,7 @@ class Rental extends Model
         'tempo_solicitado',
         'end_time',
         'total_minutes',
+        'total_seconds',
         'valor_total',
     ];
 
@@ -27,6 +28,7 @@ class Rental extends Model
             'start_time' => 'datetime',
             'end_time' => 'datetime',
             'valor_total' => 'decimal:2',
+            'total_seconds' => 'integer',
         ];
     }
 

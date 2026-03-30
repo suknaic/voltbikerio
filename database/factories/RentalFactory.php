@@ -15,7 +15,8 @@ class RentalFactory extends Factory
     {
         $startTime = fake()->dateTimeBetween('-7 days', 'now');
         $endTime = fake()->dateTimeBetween($startTime, 'now');
-        $minutes = (int) (($endTime->getTimestamp() - $startTime->getTimestamp()) / 60);
+        $seconds = max(60, $endTime->getTimestamp() - $startTime->getTimestamp());
+        $minutes = (int) ceil($seconds / 60);
         $bike = Bike::factory()->make();
 
         return [
@@ -24,6 +25,7 @@ class RentalFactory extends Factory
             'start_time' => $startTime,
             'end_time' => $endTime,
             'total_minutes' => $minutes,
+            'total_seconds' => $seconds,
             'valor_total' => $minutes * 0.25,
         ];
     }

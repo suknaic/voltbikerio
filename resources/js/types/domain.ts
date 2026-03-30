@@ -24,6 +24,7 @@ export type Rental = {
     tempo_solicitado: number | null;
     end_time: string | null;
     total_minutes: number | null;
+    total_seconds?: number | null;
     valor_total: string | null;
     bike: Bike;
     customer: Customer;

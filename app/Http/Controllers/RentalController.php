@@ -34,6 +34,8 @@ class RentalController extends Controller
     public function store(StartRentalRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+        $redirectRoute = $this->resolveRedirectRoute($validated['redirect_to'] ?? null);
+        unset($validated['redirect_to']);
 
         $bike = $this->bikeRepository->findOrFail($validated['bike_id']);
         $customer = $this->customerRepository->create([
@@ -43,33 +45,23 @@ class RentalController extends Controller
 
         $this->rentalService->startRental($bike, $customer, $validated['tempo_solicitado'] ?? null);
 
-        return redirect()->route('employee.dashboard')->with('success', 'Aluguel iniciado com sucesso!');
+        return redirect()->route($redirectRoute)->with('success', 'Aluguel iniciado com sucesso!');
     }
 
-    public function billing(Rental $rental): RedirectResponse
+    public function billing(Rental $rental, Request $request): RedirectResponse
     {
         $rental->load(['bike', 'customer']);
+        $redirectRoute = $this->resolveRedirectRoute($request->input('redirect_to'));
 
-        return redirect()->route('employee.dashboard')->with('lastRental', [
-            'bike_nome' => $rental->bike->nome,
-            'customer_nome' => $rental->customer->nome,
-            'customer_telefone' => $rental->customer->telefone,
-            'total_minutes' => $rental->total_minutes ?? 0,
-            'valor_total' => (float) ($rental->valor_total ?? 0),
-        ]);
+        return redirect()->route($redirectRoute)->with('lastRental', $this->formatBillingData($rental));
     }
 
-    public function end(Rental $rental): RedirectResponse
+    public function end(Rental $rental, Request $request): RedirectResponse
     {
         $rental = $this->rentalService->endRental($rental);
+        $redirectRoute = $this->resolveRedirectRoute($request->input('redirect_to'));
 
-        return redirect()->route('employee.dashboard')->with('lastRental', [
-            'bike_nome' => $rental->bike->nome,
-            'customer_nome' => $rental->customer->nome,
-            'customer_telefone' => $rental->customer->telefone,
-            'total_minutes' => $rental->total_minutes ?? 0,
-            'valor_total' => (float) ($rental->valor_total ?? 0),
-        ]);
+        return redirect()->route($redirectRoute)->with('lastRental', $this->formatBillingData($rental));
     }
 
     public function history(Request $request): Response
@@ -114,5 +106,24 @@ class RentalController extends Controller
 
             fclose($handle);
         }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    private function formatBillingData(Rental $rental): array
+    {
+        return [
+            'bike_nome' => $rental->bike->nome,
+            'customer_nome' => $rental->customer->nome,
+            'customer_telefone' => $rental->customer->telefone,
+            'total_minutes' => $rental->total_minutes ?? 0,
+            'total_seconds' => $rental->total_seconds ?? (($rental->total_minutes ?? 0) * 60),
+            'valor_total' => (float) ($rental->valor_total ?? 0),
+        ];
+    }
+
+    private function resolveRedirectRoute(?string $route): string
+    {
+        return in_array($route, ['admin.dashboard', 'employee.dashboard', 'admin.rentals.operations'], true)
+            ? $route
+            : 'employee.dashboard';
     }
 }

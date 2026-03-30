@@ -5,11 +5,8 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\RentalController;
-use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
-
-
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -35,6 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     // Admin routes
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function (): void {
         Route::get('dashboard', [DashboardController::class, 'admin'])->name('dashboard');
+        Route::get('rentals/operations', [DashboardController::class, 'rentalOperations'])->name('rentals.operations');
         Route::resource('bikes', BikeController::class)->except(['show']);
         Route::patch('bikes/{bike}/toggle-status', [BikeController::class, 'toggleStatus'])->name('bikes.toggle-status');
         Route::get('rentals/history', [RentalController::class, 'history'])->name('rentals.history');

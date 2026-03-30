@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Setting;
 use App\Repositories\BikeRepository;
 use App\Repositories\RentalRepository;
 use Inertia\Inertia;
@@ -22,8 +23,19 @@ class DashboardController extends Controller
         return Inertia::render('admin/dashboard', [
             'activeRentals' => $this->rentalRepository->active(),
             'bikes' => $this->bikeRepository->all(),
+            'availableBikes' => $this->bikeRepository->available(),
             'todaySummary' => $this->rentalRepository->reportSummary($today, $today),
             'monthSummary' => $this->rentalRepository->reportSummary($monthStart, $today),
+            'preco_por_minuto' => (string) Setting::get('preco_por_minuto', '0.25'),
+        ]);
+    }
+
+    public function rentalOperations(): Response
+    {
+        return Inertia::render('admin/rentals/operations', [
+            'availableBikes' => $this->bikeRepository->available(),
+            'activeRentals' => $this->rentalRepository->active(),
+            'preco_por_minuto' => (string) Setting::get('preco_por_minuto', '0.25'),
         ]);
     }
 
@@ -32,7 +44,7 @@ class DashboardController extends Controller
         return Inertia::render('employee/dashboard', [
             'availableBikes' => $this->bikeRepository->available(),
             'activeRentals' => $this->rentalRepository->active(),
-            'preco_por_minuto' => (string) \App\Models\Setting::get('preco_por_minuto', '0.25'),
+            'preco_por_minuto' => (string) Setting::get('preco_por_minuto', '0.25'),
         ]);
     }
 }
