@@ -97,10 +97,10 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                                     >
                                         <td className="px-2 py-3 sm:px-4">
                                             <img
-                                                src={bike.foto_url ? `/${bike.foto_url}` : '/assets/bike-placeholder.svg'}
+                                                src={bike.foto_url ? `/${bike.foto_url}` : '/assets/bike-default.webp'}
                                                 alt={bike.nome}
                                                 onError={(event) => {
-                                                    event.currentTarget.src = '/assets/bike-placeholder.svg';
+                                                    event.currentTarget.src = '/assets/bike-default.webp';
                                                 }}
                                                 className="h-10 w-10 rounded-md object-cover sm:h-12 sm:w-12"
                                             />

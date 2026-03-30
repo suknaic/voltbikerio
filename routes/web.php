@@ -3,8 +3,12 @@
 use App\Http\Controllers\BikeController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\RentalController;
+use App\Http\Controllers\SettingController;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 
@@ -15,8 +19,8 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function (): void {
     // Redirect /dashboard based on role
     Route::get('dashboard', function () {
-        /** @var \App\Models\User $user */
-        $user = \Illuminate\Support\Facades\Auth::user();
+        /** @var User $user */
+        $user = Auth::user();
 
         return $user->isAdmin()
             ? redirect()->route('admin.dashboard')
@@ -36,10 +40,10 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::resource('bikes', BikeController::class)->except(['show']);
         Route::patch('bikes/{bike}/toggle-status', [BikeController::class, 'toggleStatus'])->name('bikes.toggle-status');
         Route::get('rentals/history', [RentalController::class, 'history'])->name('rentals.history');
-        Route::get('rentals/export-csv', [RentalController::class, 'exportCsv'])->name('rentals.export-csv');
-        Route::get('settings', [\App\Http\Controllers\SettingController::class, 'edit'])->name('settings.edit');
-        Route::patch('settings', [\App\Http\Controllers\SettingController::class, 'update'])->name('settings.update');
-        Route::resource('employees', \App\Http\Controllers\EmployeeController::class);
+        Route::get('rentals/export/{format}', [RentalController::class, 'export'])->name('rentals.export');
+        Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
+        Route::patch('settings', [SettingController::class, 'update'])->name('settings.update');
+        Route::resource('employees', EmployeeController::class);
     });
 
     // Employee routes

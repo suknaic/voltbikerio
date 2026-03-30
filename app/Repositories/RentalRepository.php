@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Rental;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 class RentalRepository
@@ -27,7 +28,7 @@ class RentalRepository
         return $this->buildHistoryQuery($filters)->get();
     }
 
-    private function buildHistoryQuery(array $filters = []): \Illuminate\Database\Eloquent\Builder
+    private function buildHistoryQuery(array $filters = []): Builder
     {
         $query = Rental::query()
             ->with(['bike', 'customer'])
@@ -44,6 +45,16 @@ class RentalRepository
 
         if (isset($filters['bike_id'])) {
             $query->where('bike_id', $filters['bike_id']);
+        }
+
+        if (isset($filters['customer_id'])) {
+            $query->where('customer_id', $filters['customer_id']);
+        }
+
+        if (! empty($filters['customer_name'])) {
+            $query->whereHas('customer', static function ($query) use ($filters): void {
+                $query->where('nome', 'like', '%' . $filters['customer_name'] . '%');
+            });
         }
 
         return $query;
@@ -69,7 +80,7 @@ class RentalRepository
     /**
      * @return array{total_rentals: int, total_minutes: int, receita_total: float, tempo_medio: int, ticket_medio: float}
      */
-    public function reportSummary(string $dateFrom, string $dateTo, ?int $bikeId = null): array
+    public function reportSummary(string $dateFrom, string $dateTo, ?int $bikeId = null, ?string $customerName = null): array
     {
         $query = Rental::query()
             ->whereNotNull('end_time')
@@ -77,6 +88,12 @@ class RentalRepository
 
         if ($bikeId !== null) {
             $query->where('bike_id', $bikeId);
+        }
+
+        if ($customerName !== null && $customerName !== '') {
+            $query->whereHas('customer', static function ($query) use ($customerName): void {
+                $query->where('nome', 'like', '%' . $customerName . '%');
+            });
         }
 
         $result = $query

@@ -1,7 +1,9 @@
 import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { DateRangePicker } from '@/components/date-range-picker';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
@@ -29,22 +31,51 @@ export default function RentalHistory({ rentals, bikes, summary, filters }: Prop
     const [dateFrom, setDateFrom] = useState(filters.date_from ?? '');
     const [dateTo, setDateTo] = useState(filters.date_to ?? '');
     const [bikeId, setBikeId] = useState(filters.bike_id ?? '');
+    const [customerName, setCustomerName] = useState(filters.customer_name ?? '');
+    const hasMountedCustomerSearch = useRef(false);
 
-    function applyFilters() {
-        router.get('/admin/rentals/history', {
+    function buildFilterPayload(extra?: Record<string, unknown>) {
+        return {
             date_from: dateFrom || undefined,
             date_to: dateTo || undefined,
             bike_id: bikeId || undefined,
-        }, { preserveState: true });
+            customer_name: customerName || undefined,
+            ...extra,
+        };
     }
 
-    function exportCsv() {
-        const params = new URLSearchParams();
-        if (dateFrom) params.set('date_from', dateFrom);
-        if (dateTo) params.set('date_to', dateTo);
-        if (bikeId) params.set('bike_id', bikeId);
-        window.location.href = `/admin/rentals/export-csv?${params.toString()}`;
+    function applyFilters() {
+        router.get('/admin/rentals/history', buildFilterPayload(), { preserveState: true });
     }
+
+    function handleExport(format: 'csv' | 'excel' | 'pdf') {
+        const params = new URLSearchParams();
+        const payload = buildFilterPayload();
+        Object.entries(payload).forEach(([key, value]) => {
+            if (typeof value === 'string') {
+                params.set(key, value);
+            }
+        });
+        const query = params.toString();
+        window.location.href = `/admin/rentals/export/${format}${query ? `?${query}` : ''}`;
+    }
+
+    useEffect(() => {
+        if (!hasMountedCustomerSearch.current) {
+            hasMountedCustomerSearch.current = true;
+            return;
+        }
+
+        const timeout = window.setTimeout(() => {
+            router.get('/admin/rentals/history', buildFilterPayload(), {
+                preserveState: true,
+                replace: true,
+            });
+        }, 400);
+
+        return () => window.clearTimeout(timeout);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [customerName]);
 
     function formatDuration(minutes: number | null) {
         if (minutes === null) {
@@ -117,23 +148,13 @@ export default function RentalHistory({ rentals, bikes, summary, filters }: Prop
                     <CardContent>
                         <div className="flex flex-wrap gap-3">
                             <div className="grid gap-1">
-                                <Label htmlFor="date_from">De</Label>
-                                <Input
-                                    id="date_from"
-                                    type="date"
-                                    value={dateFrom}
-                                    onChange={(e) => setDateFrom(e.target.value)}
-                                    className="w-40"
-                                />
-                            </div>
-                            <div className="grid gap-1">
-                                <Label htmlFor="date_to">Até</Label>
-                                <Input
-                                    id="date_to"
-                                    type="date"
-                                    value={dateTo}
-                                    onChange={(e) => setDateTo(e.target.value)}
-                                    className="w-40"
+                                <Label>Período</Label>
+                                <DateRangePicker
+                                    value={{ from: dateFrom, to: dateTo }}
+                                    onChange={({ from, to }) => {
+                                        setDateFrom(from);
+                                        setDateTo(to);
+                                    }}
                                 />
                             </div>
                             <div className="grid gap-1">
@@ -152,11 +173,31 @@ export default function RentalHistory({ rentals, bikes, summary, filters }: Prop
                                     ))}
                                 </select>
                             </div>
+                            <div className="grid gap-1">
+                                <Label htmlFor="customer_name">Cliente</Label>
+                                <Input
+                                    id="customer_name"
+                                    type="text"
+                                    placeholder="Digite para filtrar"
+                                    value={customerName}
+                                    onChange={(e) => setCustomerName(e.target.value)}
+                                    className="w-48"
+                                />
+                            </div>
                             <div className="flex items-end">
                                 <Button onClick={applyFilters}>Filtrar</Button>
                             </div>
                             <div className="flex items-end">
-                                <Button variant="outline" onClick={exportCsv}>Exportar CSV</Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline">Exportar</Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-40">
+                                        <DropdownMenuItem onClick={() => handleExport('csv')}>CSV</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleExport('excel')}>Excel</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleExport('pdf')}>PDF</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
                         </div>
                     </CardContent>
@@ -218,10 +259,7 @@ export default function RentalHistory({ rentals, bikes, summary, filters }: Prop
                                 variant={page === rentals.current_page ? 'default' : 'outline'}
                                 size="sm"
                                 onClick={() =>
-                                    router.get('/admin/rentals/history', {
-                                        ...filters,
-                                        page,
-                                    })
+                                    router.get('/admin/rentals/history', buildFilterPayload({ page }))
                                 }
                             >
                                 {page}

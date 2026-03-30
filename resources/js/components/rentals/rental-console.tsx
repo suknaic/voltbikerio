@@ -351,7 +351,7 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                                         />
                                         <div className="relative mb-3 h-24 overflow-hidden rounded-xl border border-zinc-800/80 bg-zinc-950/80">
                                             <img
-                                                src={bike.foto_url ? `/${bike.foto_url}` : '/assets/bike-placeholder.svg'}
+                                                src={bike.foto_url ? `/${bike.foto_url}` : '/assets/bike-default.webp'}
                                                 alt={bike.nome}
                                                 className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                                             />
