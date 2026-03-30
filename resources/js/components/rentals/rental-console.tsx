@@ -47,7 +47,7 @@ declare global {
     interface Window {
         Echo?: {
             channel: (name: string) => {
-                listen: (event: string, callback: () => void) => void;
+                listen: (event: string, callback: (data: unknown) => void) => void;
             };
             leaveChannel: (name: string) => void;
         };
@@ -87,6 +87,28 @@ function formatMoney(value: number): string {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     });
+}
+
+function maskPhoneInput(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+    if (digits.length === 0) {
+        return '';
+    }
+
+    if (digits.length < 3) {
+        return `(${digits}`;
+    }
+
+    const ddd = digits.slice(0, 2);
+    if (digits.length < 7) {
+        return `(${ddd}) ${digits.slice(2)}`;
+    }
+
+    if (digits.length < 11) {
+        return `(${ddd}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    }
+
+    return `(${ddd}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
 }
 
 export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
@@ -208,6 +230,10 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                 setSelectedBike(null);
             },
         });
+    }
+
+    function handlePhoneChange(value: string) {
+        setData('customer_telefone', maskPhoneInput(value));
     }
 
     function handleEnd(rental: Rental) {
@@ -392,7 +418,7 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                                     <Input
                                         id="customer_telefone"
                                         value={data.customer_telefone}
-                                        onChange={(e) => setData('customer_telefone', e.target.value)}
+                                        onChange={(e) => handlePhoneChange(e.target.value)}
                                         placeholder="(00) 00000-0000"
                                         inputMode="tel"
                                         className="border-zinc-700 bg-zinc-900 text-white placeholder:text-zinc-600 focus-visible:ring-[#48fd00]"

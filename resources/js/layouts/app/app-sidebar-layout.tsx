@@ -44,42 +44,62 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: AppLayo
     }
 
     useEffect(() => {
-        if (!isAdmin || !window.Echo) return;
+        if (typeof window === 'undefined' || !window.Echo) return;
 
         const channel = window.Echo.channel('rentals');
 
-        channel.listen('.RentalStarted', (data: RentalEventPayload) => {
-            const id = Date.now();
-            setNotifications((prev) => [
-                ...prev,
-                { id, type: 'started', bikeName: data.rental.bike.nome, customerName: data.rental.customer.nome },
-            ]);
-            setTimeout(() => setNotifications((prev) => prev.filter((n) => n.id !== id)), 5000);
-
-            if (window.location.pathname === '/admin/dashboard') {
-                router.reload({ only: ['activeRentals', 'bikes', 'todaySummary', 'monthSummary'] });
+        const refreshDashboards = () => {
+            if (typeof window === 'undefined') {
+                return;
             }
-        });
 
-        channel.listen('.RentalEnded', (data: RentalEventPayload) => {
-            const id = Date.now();
-            setNotifications((prev) => [
-                ...prev,
-                {
-                    id,
-                    type: 'ended',
-                    bikeName: data.rental.bike.nome,
-                    customerName: data.rental.customer.nome,
-                    totalMinutes: data.rental.total_minutes,
-                    valorTotal: Number(data.rental.valor_total ?? 0),
-                },
-            ]);
-            setTimeout(() => setNotifications((prev) => prev.filter((n) => n.id !== id)), 5000);
+            const path = window.location.pathname.replace(/\/$/, '') || '/';
 
-            if (window.location.pathname === '/admin/dashboard') {
-                router.reload({ only: ['activeRentals', 'bikes', 'todaySummary', 'monthSummary'] });
+            if (path === '/admin/dashboard') {
+                router.reload({ only: ['activeRentals', 'availableBikes', 'bikes', 'todaySummary', 'monthSummary', 'preco_por_minuto'] });
+                return;
             }
-        });
+
+            if (path === '/admin/rentals/operations' || path === '/employee/dashboard') {
+                router.reload({ only: ['availableBikes', 'activeRentals', 'preco_por_minuto'] });
+            }
+        };
+
+        const handleRentalStarted = (data: RentalEventPayload) => {
+            if (isAdmin) {
+                const id = Date.now();
+                setNotifications((prev) => [
+                    ...prev,
+                    { id, type: 'started', bikeName: data.rental.bike.nome, customerName: data.rental.customer.nome },
+                ]);
+                setTimeout(() => setNotifications((prev) => prev.filter((n) => n.id !== id)), 5000);
+            }
+
+            refreshDashboards();
+        };
+
+        const handleRentalEnded = (data: RentalEventPayload) => {
+            if (isAdmin) {
+                const id = Date.now();
+                setNotifications((prev) => [
+                    ...prev,
+                    {
+                        id,
+                        type: 'ended',
+                        bikeName: data.rental.bike.nome,
+                        customerName: data.rental.customer.nome,
+                        totalMinutes: data.rental.total_minutes,
+                        valorTotal: Number(data.rental.valor_total ?? 0),
+                    },
+                ]);
+                setTimeout(() => setNotifications((prev) => prev.filter((n) => n.id !== id)), 5000);
+            }
+
+            refreshDashboards();
+        };
+
+        channel.listen('.RentalStarted', handleRentalStarted);
+        channel.listen('.RentalEnded', handleRentalEnded);
 
         return () => window.Echo.leaveChannel('rentals');
     }, [isAdmin]);
