@@ -105,13 +105,14 @@ class RentalController extends Controller
         return response()->streamDownload(function () use ($rentals): void {
             $handle = fopen('php://output', 'w');
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
-            fputcsv($handle, ['ID', 'Bicicleta', 'Cliente', 'Início', 'Fim', 'Tempo Solicitado (min)', 'Duração Real (min)', 'Valor (R$)'], ';');
+            fputcsv($handle, ['ID', 'Bicicleta', 'Cliente', 'Telefone', 'Início', 'Fim', 'Tempo Solicitado (min)', 'Duração Real (min)', 'Valor (R$)'], ';');
 
             foreach ($rentals as $rental) {
                 fputcsv($handle, [
                     $rental->id,
                     $rental->bike->nome,
                     $rental->customer->nome,
+                    $rental->telefone_cliente ?? $rental->customer->telefone,
                     $rental->start_time,
                     $rental->end_time,
                     $rental->tempo_solicitado,
@@ -132,6 +133,7 @@ class RentalController extends Controller
                 $rental->id,
                 $rental->bike->nome,
                 $rental->customer->nome,
+                $rental->telefone_cliente ?? $rental->customer->telefone,
                 $rental->start_time,
                 $rental->end_time,
                 $rental->tempo_solicitado,
@@ -145,7 +147,7 @@ class RentalController extends Controller
         })->implode('');
 
         $table = '<table border="1"><thead><tr>'
-            . '<th>ID</th><th>Bicicleta</th><th>Cliente</th><th>Início</th><th>Fim</th><th>Tempo Solicitado (min)</th><th>Duração Real (min)</th><th>Valor (R$)</th>'
+            . '<th>ID</th><th>Bicicleta</th><th>Cliente</th><th>Telefone</th><th>Início</th><th>Fim</th><th>Tempo Solicitado (min)</th><th>Duração Real (min)</th><th>Valor (R$)</th>'
             . '</tr></thead><tbody>' . $rows . '</tbody></table>';
 
         return response()->streamDownload(fn() => print $table, $filename, [
@@ -166,13 +168,14 @@ class RentalController extends Controller
         $pdf->Ln(2);
 
         $headers = [
-            ['label' => 'ID', 'width' => 12],
-            ['label' => 'Bicicleta', 'width' => 32],
-            ['label' => 'Cliente', 'width' => 32],
-            ['label' => 'Inicio', 'width' => 35],
-            ['label' => 'Fim', 'width' => 35],
-            ['label' => 'Tempo (min)', 'width' => 24],
-            ['label' => 'Valor (R$)', 'width' => 22],
+            ['label' => 'ID', 'width' => 10],
+            ['label' => 'Bicicleta', 'width' => 25],
+            ['label' => 'Cliente', 'width' => 25],
+            ['label' => 'Telefone', 'width' => 24],
+            ['label' => 'Inicio', 'width' => 30],
+            ['label' => 'Fim', 'width' => 30],
+            ['label' => 'Tempo (min)', 'width' => 20],
+            ['label' => 'Valor (R$)', 'width' => 20],
         ];
 
         $pdf->SetFont('Arial', 'B', 9);
@@ -184,12 +187,13 @@ class RentalController extends Controller
         $pdf->SetFont('Arial', '', 8);
         foreach ($rentals as $rental) {
             $pdf->Cell($headers[0]['width'], 7, (string) $rental->id, 1);
-            $pdf->Cell($headers[1]['width'], 7, mb_strimwidth($rental->bike->nome, 0, 28, '...'), 1);
-            $pdf->Cell($headers[2]['width'], 7, mb_strimwidth($rental->customer->nome, 0, 28, '...'), 1);
-            $pdf->Cell($headers[3]['width'], 7, $this->formatDateForPdf($rental->start_time), 1);
-            $pdf->Cell($headers[4]['width'], 7, $this->formatDateForPdf($rental->end_time), 1);
+            $pdf->Cell($headers[1]['width'], 7, mb_strimwidth($rental->bike->nome, 0, 22, '...'), 1);
+            $pdf->Cell($headers[2]['width'], 7, mb_strimwidth($rental->customer->nome, 0, 22, '...'), 1);
+            $pdf->Cell($headers[3]['width'], 7, mb_strimwidth($rental->telefone_cliente ?? $rental->customer->telefone ?? '', 0, 22, '...'), 1);
+            $pdf->Cell($headers[4]['width'], 7, $this->formatDateForPdf($rental->start_time), 1);
+            $pdf->Cell($headers[5]['width'], 7, $this->formatDateForPdf($rental->end_time), 1);
             $pdf->Cell(
-                $headers[5]['width'],
+                $headers[6]['width'],
                 7,
                 $rental->total_minutes !== null ? (string) $rental->total_minutes : '-',
                 1,
@@ -197,7 +201,7 @@ class RentalController extends Controller
                 'R'
             );
             $pdf->Cell(
-                $headers[6]['width'],
+                $headers[7]['width'],
                 7,
                 $rental->valor_total ? number_format((float) $rental->valor_total, 2, ',', '.') : '-',
                 1,

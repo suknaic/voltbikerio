@@ -211,6 +211,7 @@ export default function RentalHistory({ rentals, bikes, summary, filters }: Prop
                                 <tr className="border-b bg-muted/50">
                                     <th className="px-4 py-3 text-left font-medium">Bicicleta</th>
                                     <th className="px-4 py-3 text-left font-medium">Cliente</th>
+                                    <th className="px-4 py-3 text-left font-medium">Telefone</th>
                                     <th className="px-4 py-3 text-left font-medium">Início</th>
                                     <th className="px-4 py-3 text-left font-medium">Fim</th>
                                     <th className="px-4 py-3 text-left font-medium">Solicitado</th>
@@ -221,7 +222,7 @@ export default function RentalHistory({ rentals, bikes, summary, filters }: Prop
                             <tbody>
                                 {rentals.data.length === 0 && (
                                     <tr>
-                                        <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                                        <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                                             Nenhum aluguel encontrado.
                                         </td>
                                     </tr>
@@ -230,6 +231,7 @@ export default function RentalHistory({ rentals, bikes, summary, filters }: Prop
                                     <tr key={rental.id} className="border-b transition-colors duration-150 hover:bg-muted/30">
                                         <td className="px-4 py-3">{rental.bike.nome}</td>
                                         <td className="px-4 py-3">{rental.customer.nome}</td>
+                                        <td className="px-4 py-3">{rental.telefone_cliente || rental.customer.telefone || '-'}</td>
                                         <td className="px-4 py-3 text-xs">
                                             {new Date(rental.start_time).toLocaleString('pt-BR')}
                                         </td>

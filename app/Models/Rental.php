@@ -14,6 +14,7 @@ class Rental extends Model
     protected $fillable = [
         'bike_id',
         'customer_id',
+        'telefone_cliente',
         'start_time',
         'tempo_solicitado',
         'end_time',

@@ -1,6 +1,6 @@
 import { router, useForm } from '@inertiajs/react';
 import { Bike as BikeIcon, Clock3, Wallet } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import InputError from '@/components/input-error';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -137,6 +137,10 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
     const [optimisticBilling, setOptimisticBilling] = useState<BillingSnapshot | null>(null);
     const [finalizingRentalId, setFinalizingRentalId] = useState<number | null>(null);
     const [now, setNow] = useState(() => Date.now());
+    const [playedTimeoutAlerts, setPlayedTimeoutAlerts] = useState<Set<number>>(new Set());
+    const [isLoadingCustomer, setIsLoadingCustomer] = useState(false);
+    const [customerFound, setCustomerFound] = useState(false);
+    const phoneSearchTimeout = useRef<number | null>(null);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         bike_id: '',
@@ -153,6 +157,14 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
     useEffect(() => {
         const timer = window.setInterval(() => setNow(Date.now()), 1000);
         return () => window.clearInterval(timer);
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (phoneSearchTimeout.current) {
+                window.clearTimeout(phoneSearchTimeout.current);
+            }
+        };
     }, []);
 
     useEffect(() => {
@@ -185,6 +197,27 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
         }
     }, [flash?.lastRental]);
 
+    useEffect(() => {
+        activeRentals.forEach((rental) => {
+            if (rental.tempo_solicitado === null || rental.tempo_solicitado === undefined) {
+                return;
+            }
+
+            const elapsedMin = (now - new Date(rental.start_time).getTime()) / 60000;
+            const hasTimeExpired = elapsedMin >= rental.tempo_solicitado;
+            const hasAlreadyPlayed = playedTimeoutAlerts.has(rental.id);
+
+            if (hasTimeExpired && !hasAlreadyPlayed) {
+                const audio = new Audio('/assets/bike-bell.mp3');
+                audio.play().catch((error) => {
+                    console.error('Erro ao reproduzir áudio:', error);
+                });
+
+                setPlayedTimeoutAlerts((prev) => new Set(prev).add(rental.id));
+            }
+        });
+    }, [now, activeRentals, playedTimeoutAlerts]);
+
     const billingData: BillingSnapshot | null = optimisticBilling
         ?? (flash?.lastRental
             ? {
@@ -211,6 +244,11 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
 
     function cancelSelection() {
         setSelectedBike(null);
+        setCustomerFound(false);
+        setIsLoadingCustomer(false);
+        if (phoneSearchTimeout.current) {
+            window.clearTimeout(phoneSearchTimeout.current);
+        }
         reset();
     }
 
@@ -232,8 +270,46 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
         });
     }
 
+    async function searchCustomerByPhone(phone: string) {
+        const cleanPhone = phone.replace(/\D/g, '');
+        
+        if (cleanPhone.length < 10) {
+            setCustomerFound(false);
+            return;
+        }
+
+        setIsLoadingCustomer(true);
+
+        try {
+            const response = await fetch(`/customers/find-by-phone?phone=${encodeURIComponent(phone)}`);
+            const result = await response.json();
+
+            if (result.customer) {
+                setData('customer_nome', result.customer.nome);
+                setCustomerFound(true);
+            } else {
+                setCustomerFound(false);
+            }
+        } catch (error) {
+            console.error('Erro ao buscar cliente:', error);
+            setCustomerFound(false);
+        } finally {
+            setIsLoadingCustomer(false);
+        }
+    }
+
     function handlePhoneChange(value: string) {
-        setData('customer_telefone', maskPhoneInput(value));
+        const maskedPhone = maskPhoneInput(value);
+        setData('customer_telefone', maskedPhone);
+        setCustomerFound(false);
+
+        if (phoneSearchTimeout.current) {
+            window.clearTimeout(phoneSearchTimeout.current);
+        }
+
+        phoneSearchTimeout.current = window.setTimeout(() => {
+            searchCustomerByPhone(maskedPhone);
+        }, 800);
     }
 
     function handleEnd(rental: Rental) {
@@ -397,6 +473,34 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
 
                             <form onSubmit={handleStart} className="space-y-4">
                                 <div className="grid gap-1.5">
+                                    <Label htmlFor="customer_telefone" className="text-zinc-300">
+                                        Telefone
+                                    </Label>
+                                    <div className="relative">
+                                        <Input
+                                            id="customer_telefone"
+                                            value={data.customer_telefone}
+                                            onChange={(e) => handlePhoneChange(e.target.value)}
+                                            placeholder="(00) 00000-0000"
+                                            inputMode="tel"
+                                            autoFocus
+                                            className="border-zinc-700 bg-zinc-900 text-white placeholder:text-zinc-600 focus-visible:ring-[#48fd00]"
+                                        />
+                                        {isLoadingCustomer && (
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-600 border-t-[#48fd00]" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <InputError message={errors.customer_telefone} />
+                                    {customerFound && (
+                                        <p className="text-xs animate-in fade-in-0 duration-200" style={{ color: '#48fd00' }}>
+                                            ✓ Cliente encontrado - dados preenchidos automaticamente
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="grid gap-1.5">
                                     <Label htmlFor="customer_nome" className="text-zinc-300">
                                         Nome do cliente
                                     </Label>
@@ -405,25 +509,9 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                                         value={data.customer_nome}
                                         onChange={(e) => setData('customer_nome', e.target.value)}
                                         placeholder="Nome completo"
-                                        autoFocus
                                         className="border-zinc-700 bg-zinc-900 text-white placeholder:text-zinc-600 focus-visible:ring-[#48fd00]"
                                     />
                                     <InputError message={errors.customer_nome} />
-                                </div>
-
-                                <div className="grid gap-1.5">
-                                    <Label htmlFor="customer_telefone" className="text-zinc-300">
-                                        Telefone
-                                    </Label>
-                                    <Input
-                                        id="customer_telefone"
-                                        value={data.customer_telefone}
-                                        onChange={(e) => handlePhoneChange(e.target.value)}
-                                        placeholder="(00) 00000-0000"
-                                        inputMode="tel"
-                                        className="border-zinc-700 bg-zinc-900 text-white placeholder:text-zinc-600 focus-visible:ring-[#48fd00]"
-                                    />
-                                    <InputError message={errors.customer_telefone} />
                                 </div>
 
                                 <div className="grid gap-1.5">

@@ -27,4 +27,15 @@ class CustomerRepository
     {
         return Customer::create($data);
     }
+
+    public function findByPhone(string $phone): ?Customer
+    {
+        $cleanPhone = preg_replace('/\D/', '', $phone);
+
+        return Customer::query()
+            ->where('telefone', 'like', '%' . $cleanPhone . '%')
+            ->orWhere('telefone', $phone)
+            ->latest()
+            ->first();
+    }
 }

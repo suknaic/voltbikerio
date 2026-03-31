@@ -60,6 +60,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::get('/', [CustomerController::class, 'index'])->name('index');
         Route::get('/create', [CustomerController::class, 'create'])->name('create');
         Route::post('/', [CustomerController::class, 'store'])->name('store');
+        Route::get('/find-by-phone', [CustomerController::class, 'findByPhone'])->name('find-by-phone');
     });
 });
 

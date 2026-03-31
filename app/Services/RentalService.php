@@ -30,6 +30,7 @@ class RentalService
         $rental = $this->rentalRepository->create([
             'bike_id' => $bike->id,
             'customer_id' => $customer->id,
+            'telefone_cliente' => $customer->telefone,
             'start_time' => Carbon::now(),
             'tempo_solicitado' => $tempoSolicitado,
         ]);

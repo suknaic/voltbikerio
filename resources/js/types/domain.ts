@@ -20,6 +20,7 @@ export type Rental = {
     id: number;
     bike_id: number;
     customer_id: number;
+    telefone_cliente?: string | null;
     start_time: string;
     tempo_solicitado: number | null;
     end_time: string | null;
