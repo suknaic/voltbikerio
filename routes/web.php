@@ -50,6 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::middleware('role:employee,admin')->prefix('employee')->name('employee.')->group(function (): void {
         Route::get('dashboard', [DashboardController::class, 'employee'])->name('dashboard');
         Route::get('rentals', [RentalController::class, 'index'])->name('rentals.index');
+        Route::get('rentals/history', [RentalController::class, 'employeeHistory'])->name('rentals.history');
         Route::post('rentals', [RentalController::class, 'store'])->name('rentals.store');
         Route::get('rentals/{rental}/billing', [RentalController::class, 'billing'])->name('rentals.billing');
         Route::patch('rentals/{rental}/end', [RentalController::class, 'end'])->name('rentals.end');

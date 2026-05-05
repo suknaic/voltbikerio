@@ -84,6 +84,17 @@ class RentalController extends Controller
         ]);
     }
 
+    public function employeeHistory(Request $request): Response
+    {
+        $filters = $request->only(['date_from', 'date_to', 'bike_id', 'customer_name']);
+
+        return Inertia::render('employee/rentals/history', [
+            'rentals' => $this->rentalRepository->history($filters),
+            'bikes' => $this->bikeRepository->all(),
+            'filters' => $filters,
+        ]);
+    }
+
     public function export(Request $request, string $format): StreamedResponse
     {
         $filters = $request->only(['date_from', 'date_to', 'bike_id', 'customer_name']);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Setting;
 use App\Repositories\BikeRepository;
 use App\Repositories\RentalRepository;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -39,12 +40,17 @@ class DashboardController extends Controller
         ]);
     }
 
-    public function employee(): Response
+    public function employee(Request $request): Response
     {
+        $filters = $request->only(['date_from', 'date_to', 'bike_id', 'customer_name']);
+
         return Inertia::render('employee/dashboard', [
             'availableBikes' => $this->bikeRepository->available(),
             'activeRentals' => $this->rentalRepository->active(),
             'preco_por_minuto' => (string) Setting::get('preco_por_minuto', '0.25'),
+            'rentals' => $this->rentalRepository->history($filters),
+            'bikes' => $this->bikeRepository->all(),
+            'filters' => $filters,
         ]);
     }
 }

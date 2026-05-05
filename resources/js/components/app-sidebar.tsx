@@ -42,6 +42,12 @@ export function AppSidebar() {
             href: '/admin/rentals/operations',
             icon: Bike,
         });
+    } else {
+        mainNavItems.push({
+            title: 'Historico de alugueis',
+            href: '/employee/rentals/history',
+            icon: BookOpen,
+        });
     }
 
     return (

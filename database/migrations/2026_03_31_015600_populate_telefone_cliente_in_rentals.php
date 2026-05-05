@@ -8,12 +8,17 @@ return new class extends Migration
     public function up(): void
     {
         // Atualizar registros existentes com o telefone do cliente
-        DB::statement('
-            UPDATE rentals r
-            INNER JOIN customers c ON r.customer_id = c.id
-            SET r.telefone_cliente = c.telefone
-            WHERE r.telefone_cliente IS NULL
-        ');
+        $rentals = DB::table('rentals')->whereNull('telefone_cliente')->get();
+
+        foreach ($rentals as $rental) {
+            $customer = DB::table('customers')->where('id', $rental->customer_id)->first();
+
+            if ($customer) {
+                DB::table('rentals')->where('id', $rental->id)->update([
+                    'telefone_cliente' => $customer->telefone,
+                ]);
+            }
+        }
     }
 
     public function down(): void
