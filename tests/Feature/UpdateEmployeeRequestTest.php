@@ -10,6 +10,7 @@ test('admin can update an employee without changing email', function () {
     'email' => $employeeEmail,
   ]);
 
+  /** @var \Tests\TestCase $this */
   $response = $this
     ->actingAs($admin)
     ->patch(route('admin.employees.update', $employee), [

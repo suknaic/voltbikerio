@@ -12,7 +12,7 @@ test('admin can start rentals directly from the admin dashboard', function (): v
     $bike = Bike::factory()->available()->create([
         'disponivel' => true,
     ]);
-
+    /** @var \Tests\TestCase $this */
     $response = $this
         ->actingAs($admin)
         ->post(route('employee.rentals.store'), [
@@ -50,6 +50,7 @@ test('admin can end rentals directly from the admin dashboard', function (): voi
             'start_time' => now()->subMinutes(25),
         ]);
 
+    /** @var \Tests\TestCase $this */
     $response = $this
         ->actingAs($admin)
         ->patch(route('employee.rentals.end', $rental), [
