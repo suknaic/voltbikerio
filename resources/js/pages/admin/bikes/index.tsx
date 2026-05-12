@@ -1,45 +1,25 @@
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { useState } from 'react';
-import InputError from '@/components/input-error';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import type { Bike, BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Painel Administrativo', href: '/admin/dashboard' },
-    { title: 'Bicicletas', href: '/admin/bikes' },
+    { title: 'Veiculos', href: '/admin/bikes' },
 ];
 
 type Props = {
     bikes: Bike[];
-    preco_por_minuto: string;
 };
 
-export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
+export default function BikesIndex({ bikes }: Props) {
     const { props } = usePage<{ flash?: Record<string, string> }>();
-    const [confirmDelete, setConfirmDelete] = useState<Bike | null>(null);
-
-    const priceForm = useForm({ preco_por_minuto });
-
-    function handleDelete(bike: Bike) {
-        router.delete(`/admin/bikes/${bike.id}`, {
-            onSuccess: () => setConfirmDelete(null),
-        });
-    }
 
     function handleToggle(bike: Bike) {
         if (bike.status === 'em uso') return;
         router.patch(`/admin/bikes/${bike.id}/toggle-status`);
-    }
-
-    function handlePriceSubmit(e: React.FormEvent) {
-        e.preventDefault();
-        priceForm.patch('/admin/settings');
     }
 
     function statusBadge(bike: Bike) {
@@ -54,7 +34,7 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Bicicletas" />
+            <Head title="Veiculos" />
 
             <div className="flex flex-col gap-4 p-3 sm:p-4 md:p-6">
                 {props.flash?.success && (
@@ -64,9 +44,9 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                 )}
 
                 <div className="flex items-center justify-between">
-                    <h1 className="text-xl font-semibold">Bicicletas</h1>
+                    <h1 className="text-xl font-semibold">Veiculos</h1>
                     <Button asChild>
-                        <Link href="/admin/bikes/create">Nova Bicicleta</Link>
+                        <Link href="/admin/bikes/create">Novo Veiculo</Link>
                     </Button>
                 </div>
 
@@ -77,6 +57,7 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                                 <tr className="border-b bg-muted/50">
                                     <th className="px-2 py-3 text-left font-medium sm:px-4">Foto</th>
                                     <th className="px-2 py-3 text-left font-medium sm:px-4">Nome</th>
+                                    <th className="px-2 py-3 text-left font-medium sm:px-4">Categoria</th>
                                     <th className="px-2 py-3 text-left font-medium sm:table-cell sm:px-4">Disponível para Aluguel</th>
                                     <th className="px-2 py-3 text-left font-medium sm:px-4">Status</th>
                                     <th className="px-2 py-3 text-right font-medium sm:px-4">Ações</th>
@@ -85,8 +66,8 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                             <tbody>
                                 {bikes.length === 0 && (
                                     <tr>
-                                        <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                                            Nenhuma bicicleta cadastrada.
+                                        <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                                            Nenhum veiculo cadastrado.
                                         </td>
                                     </tr>
                                 )}
@@ -106,6 +87,11 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                                             />
                                         </td>
                                         <td className="px-2 py-3 font-medium sm:px-4">{bike.nome}</td>
+                                        <td className="px-2 py-3 sm:px-4">
+                                            <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-700">
+                                                {bike.category?.nome ?? 'Sem categoria'}
+                                            </span>
+                                        </td>
                                         <td className="px-2 py-3 sm:table-cell sm:px-4">
                                             <button
                                                 onClick={() => handleToggle(bike)}
@@ -134,13 +120,6 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                                                 <Button variant="outline" size="sm" asChild>
                                                     <Link href={`/admin/bikes/${bike.id}/edit`}>Editar</Link>
                                                 </Button>
-                                                <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    onClick={() => setConfirmDelete(bike)}
-                                                >
-                                                    Excluir
-                                                </Button>
                                             </div>
                                         </td>
                                     </tr>
@@ -149,61 +128,7 @@ export default function BikesIndex({ bikes, preco_por_minuto }: Props) {
                         </table>
                     </CardContent>
                 </Card>
-
-                {/* Inline Price Form */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-base">Preço por Minuto</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <form onSubmit={handlePriceSubmit} className="flex flex-col items-start gap-3 sm:flex-row sm:items-end">
-                            <div className="grid w-full gap-1 sm:w-auto">
-                                <Label htmlFor="preco_por_minuto">Valor (R$)</Label>
-                                <Input
-                                    id="preco_por_minuto"
-                                    type="number"
-                                    step="0.01"
-                                    min="0.01"
-                                    className="w-full sm:w-36"
-                                    value={priceForm.data.preco_por_minuto}
-                                    onChange={(e) => priceForm.setData('preco_por_minuto', e.target.value)}
-                                    required
-                                />
-                                <InputError message={priceForm.errors.preco_por_minuto} />
-                            </div>
-                            <Button type="submit" disabled={priceForm.processing} className="w-full sm:w-auto">
-                                {priceForm.processing ? 'Salvando...' : 'Salvar Preço'}
-                            </Button>
-                        </form>
-                        <p className="mt-2 text-xs text-muted-foreground">
-                            Este preço é cobrado por minuto em todos os aluguéis.
-                        </p>
-                    </CardContent>
-                </Card>
             </div>
-
-            {/* Delete Confirmation Dialog */}
-            <Dialog open={confirmDelete !== null} onOpenChange={() => setConfirmDelete(null)}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Excluir Bicicleta</DialogTitle>
-                    </DialogHeader>
-                    <p className="text-sm text-muted-foreground">
-                        Tem certeza que deseja excluir <strong>{confirmDelete?.nome}</strong>? Esta ação não pode ser desfeita.
-                    </p>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setConfirmDelete(null)}>
-                            Cancelar
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={() => confirmDelete && handleDelete(confirmDelete)}
-                        >
-                            Excluir
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
         </AppLayout>
     );
 }

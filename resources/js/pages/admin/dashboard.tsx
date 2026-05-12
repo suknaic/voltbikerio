@@ -15,7 +15,6 @@ type Props = {
     bikes: Bike[];
     todaySummary: Summary;
     monthSummary: Summary;
-    preco_por_minuto: string;
 };
 
 function formatMoney(value: number): string {
@@ -28,7 +27,6 @@ export default function AdminDashboard({
     bikes,
     todaySummary,
     monthSummary,
-    preco_por_minuto,
 }: Props) {
     const availableCount = availableBikes.length;
     const inUseCount = bikes.filter((b) => b.status === 'em uso').length;
@@ -117,15 +115,15 @@ export default function AdminDashboard({
                                 </div>
                             </div>
                         </Link>
-                        <Link href="/admin/settings" className="block">
+                        <Link href="/admin/categories" className="block">
                             <div
                                 className="flex cursor-pointer items-center gap-3 rounded-xl p-3 transition-all hover:opacity-90 sm:rounded-2xl sm:p-4"
                                 style={{ background: '#111', border: '1px solid #222' }}
                             >
-                                <span className="text-xl sm:text-2xl">⚙️</span>
+                                <span className="text-xl sm:text-2xl">🏷️</span>
                                 <div>
-                                    <p className="text-sm font-semibold text-white">Configurações</p>
-                                    <p className="text-xs text-zinc-500">Ajustes do sistema</p>
+                                    <p className="text-sm font-semibold text-white">Categorias</p>
+                                    <p className="text-xs text-zinc-500">Organizar veículos</p>
                                 </div>
                             </div>
                         </Link>

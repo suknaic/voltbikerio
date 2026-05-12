@@ -12,7 +12,7 @@ class RentalRepository
     public function active(): Collection
     {
         return Rental::query()
-            ->with(['bike', 'customer'])
+            ->with(['bike.category', 'customer'])
             ->whereNull('end_time')
             ->orderBy('start_time', 'desc')
             ->get();
@@ -31,7 +31,7 @@ class RentalRepository
     private function buildHistoryQuery(array $filters = []): Builder
     {
         $query = Rental::query()
-            ->with(['bike', 'customer'])
+            ->with(['bike.category', 'customer'])
             ->whereNotNull('end_time')
             ->orderBy('start_time', 'desc');
 
@@ -62,7 +62,7 @@ class RentalRepository
 
     public function findOrFail(int $id): Rental
     {
-        return Rental::query()->with(['bike', 'customer'])->findOrFail($id);
+        return Rental::query()->with(['bike.category', 'customer'])->findOrFail($id);
     }
 
     public function create(array $data): Rental
@@ -74,7 +74,7 @@ class RentalRepository
     {
         $rental->update($data);
 
-        return $rental->fresh(['bike', 'customer']);
+        return $rental->fresh(['bike.category', 'customer']);
     }
 
     /**

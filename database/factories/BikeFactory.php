@@ -2,16 +2,19 @@
 
 namespace Database\Factories;
 
+use App\Models\Bike;
+use App\Models\VehicleCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Bike>
+ * @extends Factory<Bike>
  */
 class BikeFactory extends Factory
 {
     public function definition(): array
     {
         return [
+            'vehicle_category_id' => VehicleCategory::factory(),
             'nome' => fake()->randomElement(['Caloi 10', 'Monark', 'Caloi Mountain', 'Bicicleta Urbana', 'Speed Pro']),
             'status' => fake()->randomElement(['disponível', 'em uso']),
         ];

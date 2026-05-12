@@ -6,6 +6,7 @@ use App\Events\BikeAvailabilityChanged;
 use App\Http\Requests\StoreBikeRequest;
 use App\Http\Requests\UpdateBikeRequest;
 use App\Models\Bike;
+use App\Models\VehicleCategory;
 use App\Repositories\BikeRepository;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\File;
@@ -20,13 +21,14 @@ class BikeController extends Controller
     {
         return Inertia::render('admin/bikes/index', [
             'bikes' => $this->bikeRepository->all(),
-            'preco_por_minuto' => \App\Models\Setting::get('preco_por_minuto', '0.25'),
         ]);
     }
 
     public function create(): Response
     {
-        return Inertia::render('admin/bikes/create');
+        return Inertia::render('admin/bikes/create', [
+            'categories' => VehicleCategory::query()->orderBy('ordem')->orderBy('nome')->get(),
+        ]);
     }
 
     public function store(StoreBikeRequest $request): RedirectResponse
@@ -50,6 +52,7 @@ class BikeController extends Controller
     {
         return Inertia::render('admin/bikes/edit', [
             'bike' => $bike,
+            'categories' => VehicleCategory::query()->orderBy('ordem')->orderBy('nome')->get(),
         ]);
     }
 

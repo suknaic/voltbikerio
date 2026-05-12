@@ -8,12 +8,11 @@ import { Label } from '@/components/ui/label';
 import rentals from '@/routes/employee/rentals';
 import type { Bike, Rental } from '@/types';
 
-type DashboardRoute = 'employee.dashboard' | 'admin.dashboard';
+type DashboardRoute = 'employee.dashboard' | 'admin.dashboard' | 'admin.rentals.operations';
 
 type RentalConsoleProps = {
     availableBikes: Bike[];
     activeRentals: Rental[];
-    precoPorMinuto: string;
     redirectRoute: DashboardRoute;
     showStats?: boolean;
     reloadOnlyProps?: string[];
@@ -43,54 +42,43 @@ type FlashProps = {
     };
 };
 
-declare global {
-    interface Window {
-        Echo?: {
-            channel: (name: string) => {
-                listen: (event: string, callback: (data: unknown) => void) => void;
-            };
-            leaveChannel: (name: string) => void;
-        };
-    }
-}
-
 function formatElapsed(startTime: string, now: number): string {
     const ms = Math.max(0, now - new Date(startTime).getTime());
     const total = Math.floor(ms / 1000);
     const h = Math.floor(total / 3600);
     const m = Math.floor((total % 3600) / 60);
     const s = total % 60;
-    if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
+
+    if (h > 0) {
+        return `${h}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
+    }
+
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-function estimatedCost(startTime: string, pricePerMin: string, now: number): string {
-    const minutes = Math.max(1, (now - new Date(startTime).getTime()) / 60000);
-    return (minutes * parseFloat(pricePerMin)).toFixed(2);
+function formatMoney(value: number): string {
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 function formatDurationFromSeconds(totalSeconds: number): string {
     const seconds = Math.max(0, Math.floor(totalSeconds));
     const minutes = Math.floor(seconds / 60);
     const remaining = seconds % 60;
+
     if (minutes === 0) {
         return `${remaining}s`;
     }
+
     if (remaining === 0) {
         return `${minutes}m`;
     }
-    return `${minutes}m ${remaining}s`;
-}
 
-function formatMoney(value: number): string {
-    return value.toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
+    return `${minutes}m ${remaining}s`;
 }
 
 function maskPhoneInput(value: string): string {
     const digits = value.replace(/\D/g, '').slice(0, 11);
+
     if (digits.length === 0) {
         return '';
     }
@@ -111,11 +99,15 @@ function maskPhoneInput(value: string): string {
     return `(${ddd}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
 }
 
+function estimateRentalCost(startTime: string, pricePerMinute: number, now: number): number {
+    const minutes = Math.max(1, (now - new Date(startTime).getTime()) / 60000);
+    return Number((minutes * pricePerMinute).toFixed(2));
+}
+
 export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
     const {
         availableBikes,
         activeRentals,
-        precoPorMinuto,
         redirectRoute,
         showStats = false,
         reloadOnlyProps,
@@ -123,15 +115,25 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
         flash,
     } = props;
 
-    const pricePerMinute = useMemo(() => Number(precoPorMinuto) || 0, [precoPorMinuto]);
     const normalizedReloadProps = useMemo(
-        () => reloadOnlyProps && reloadOnlyProps.length > 0
-            ? reloadOnlyProps
-            : ['availableBikes', 'activeRentals', 'precoPorMinuto'],
+        () => (reloadOnlyProps && reloadOnlyProps.length > 0 ? reloadOnlyProps : ['availableBikes', 'activeRentals']),
         [reloadOnlyProps],
     );
     const reloadSignature = normalizedReloadProps.join('|');
 
+    const categories = useMemo(() => {
+        const map = new Map<number, NonNullable<Bike['category']>>();
+
+        [...availableBikes, ...activeRentals.map((rental) => rental.bike)].forEach((bike) => {
+            if (bike.category) {
+                map.set(bike.category.id, bike.category);
+            }
+        });
+
+        return [...map.values()].sort((left, right) => left.ordem - right.ordem || left.nome.localeCompare(right.nome));
+    }, [availableBikes, activeRentals]);
+
+    const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
     const [selectedBike, setSelectedBike] = useState<Bike | null>(null);
     const [billingOpen, setBillingOpen] = useState(false);
     const [optimisticBilling, setOptimisticBilling] = useState<BillingSnapshot | null>(null);
@@ -155,6 +157,18 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
     }, [redirectRoute, setData]);
 
     useEffect(() => {
+        if (categories.length === 0) {
+            setSelectedCategoryId('');
+            return;
+        }
+
+        const hasSelectedCategory = categories.some((category) => String(category.id) === selectedCategoryId);
+        if (!hasSelectedCategory) {
+            setSelectedCategoryId(String(categories[0].id));
+        }
+    }, [categories, selectedCategoryId]);
+
+    useEffect(() => {
         const timer = window.setInterval(() => setNow(Date.now()), 1000);
         return () => window.clearInterval(timer);
     }, []);
@@ -168,9 +182,14 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
     }, []);
 
     useEffect(() => {
-        if (typeof window === 'undefined') return;
+        if (typeof window === 'undefined') {
+            return;
+        }
+
         const echo = window.Echo;
-        if (!echo) return;
+        if (!echo) {
+            return;
+        }
 
         const channel = echo.channel('bikes');
         channel.listen('.BikeAvailabilityChanged', () => {
@@ -183,7 +202,10 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
     }, [normalizedReloadProps, reloadSignature]);
 
     useEffect(() => {
-        if (!selectedBike) return;
+        if (!selectedBike) {
+            return;
+        }
+
         const stillAvailable = availableBikes.some((bike) => bike.id === selectedBike.id);
         if (!stillAvailable) {
             cancelSelection();
@@ -213,7 +235,7 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                     console.error('Erro ao reproduzir áudio:', error);
                 });
 
-                setPlayedTimeoutAlerts((prev) => new Set(prev).add(rental.id));
+                setPlayedTimeoutAlerts((previous) => new Set(previous).add(rental.id));
             }
         });
     }, [now, activeRentals, playedTimeoutAlerts]);
@@ -224,13 +246,18 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                   bike_nome: flash.lastRental.bike_nome,
                   customer_nome: flash.lastRental.customer_nome,
                   customer_telefone: flash.lastRental.customer_telefone,
-                  total_seconds:
-                      flash.lastRental.total_seconds
-                      ?? flash.lastRental.total_minutes * 60,
+                  total_seconds: flash.lastRental.total_seconds ?? flash.lastRental.total_minutes * 60,
                   valor_total: flash.lastRental.valor_total,
               }
             : null);
     const isOptimisticBilling = Boolean(billingData?.optimistic);
+    const selectedCategory = categories.find((category) => String(category.id) === selectedCategoryId) ?? null;
+    const visibleBikes = selectedCategory
+        ? availableBikes.filter((bike) => bike.category?.id === selectedCategory.id)
+        : availableBikes;
+    const visibleRentals = selectedCategory
+        ? activeRentals.filter((rental) => rental.bike.category?.id === selectedCategory.id)
+        : activeRentals;
 
     function closeBilling() {
         setBillingOpen(false);
@@ -272,7 +299,7 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
 
     async function searchCustomerByPhone(phone: string) {
         const cleanPhone = phone.replace(/\D/g, '');
-        
+
         if (cleanPhone.length < 10) {
             setCustomerFound(false);
             return;
@@ -317,11 +344,8 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
             return;
         }
 
-        const secondsElapsed = Math.max(
-            1,
-            Math.round((Date.now() - new Date(rental.start_time).getTime()) / 1000),
-        );
-        const estimatedValue = Number(((secondsElapsed / 60) * pricePerMinute).toFixed(2));
+        const secondsElapsed = Math.max(1, Math.round((Date.now() - new Date(rental.start_time).getTime()) / 1000));
+        const estimatedValue = estimateRentalCost(rental.start_time, Number(rental.bike.category?.preco_por_minuto ?? 0), now);
 
         setOptimisticBilling({
             bike_nome: rental.bike.nome,
@@ -360,7 +384,7 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
 
                 {showStats && (
                     <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        <div className="rounded-2xl border border-[#48fd0040] bg-gradient-to-br from-[#0f1608] via-black to-black p-4 shadow-[0_10px_25px_-18px_#48fd00]">
+                        <div className="rounded-2xl border border-[#48fd0040] p-4 shadow-[0_10px_25px_-18px_#48fd00]" style={{ background: 'linear-gradient(155deg, #0f1608 0%, #000000 100%)' }}>
                             <div className="mb-3 flex items-center justify-between">
                                 <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Disponíveis</p>
                                 <BikeIcon className="h-4 w-4 text-[#48fd00]" />
@@ -368,7 +392,7 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                             <p className="text-3xl font-bold text-white">{availableBikes.length}</p>
                             <p className="mt-1 text-xs text-[#48fd00]">Prontas para iniciar aluguel</p>
                         </div>
-                        <div className="rounded-2xl border border-[#fbf10040] bg-gradient-to-br from-[#171602] via-black to-black p-4 shadow-[0_10px_25px_-18px_#fbf100]">
+                        <div className="rounded-2xl border border-[#fbf10040] p-4 shadow-[0_10px_25px_-18px_#fbf100]" style={{ background: 'linear-gradient(155deg, #171602 0%, #000000 100%)' }}>
                             <div className="mb-3 flex items-center justify-between">
                                 <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Em andamento</p>
                                 <Clock3 className="h-4 w-4 text-[#fbf100]" />
@@ -376,36 +400,70 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                             <p className="text-3xl font-bold text-white">{activeRentals.length}</p>
                             <p className="mt-1 text-xs text-[#fbf100]">Aluguéis ativos agora</p>
                         </div>
-                        <div className="rounded-2xl border border-zinc-800 bg-gradient-to-br from-zinc-900 via-black to-black p-4 shadow-[0_10px_25px_-18px_#a1a1aa]">
+                        <div className="rounded-2xl border border-zinc-800 p-4 shadow-[0_10px_25px_-18px_#a1a1aa]" style={{ background: 'linear-gradient(155deg, #18181b 0%, #000000 100%)' }}>
                             <div className="mb-3 flex items-center justify-between">
-                                <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Valor por minuto</p>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-zinc-400">Preço da categoria</p>
                                 <Wallet className="h-4 w-4 text-zinc-300" />
                             </div>
-                            <p className="text-3xl font-bold text-white">R$ {pricePerMinute.toFixed(2)}</p>
-                            <p className="mt-1 text-xs text-zinc-400">Cobrança base da operação</p>
+                            <p className="text-3xl font-bold text-white">{selectedCategory ? formatMoney(Number(selectedCategory.preco_por_minuto)) : '—'}</p>
+                            <p className="mt-1 text-xs text-zinc-400">{selectedCategory ? selectedCategory.nome : 'Selecione uma categoria'}</p>
                         </div>
                     </section>
                 )}
 
+                <section className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                        {categories.map((category) => {
+                            const isActive = String(category.id) === selectedCategoryId;
+                            const categoryAvailableCount = availableBikes.filter((bike) => bike.category?.id === category.id).length;
+
+                            return (
+                                <button
+                                    key={category.id}
+                                    type="button"
+                                    onClick={() => setSelectedCategoryId(String(category.id))}
+                                    className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                                        isActive
+                                            ? 'border-[#48fd00] bg-[#0f1608] text-[#48fd00]'
+                                            : 'border-zinc-800 bg-zinc-950 text-zinc-300 hover:border-zinc-700'
+                                    }`}
+                                >
+                                    {category.nome} · {categoryAvailableCount}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </section>
+
                 <section>
                     <div className="mb-3 flex items-center justify-between">
-                        <h2 className="text-lg font-bold">Bicicletas Disponíveis</h2>
-                        <span
-                            className="rounded-full px-2.5 py-0.5 text-sm font-bold"
-                            style={{ background: '#48fd0020', color: '#48fd00' }}
-                        >
-                            {availableBikes.length}
+                        <div>
+                            <h2 className="text-lg font-bold">Veiculos Disponiveis</h2>
+                            {selectedCategory && (
+                                <p className="text-xs text-zinc-500">
+                                    Categoria: {selectedCategory.nome} · {formatMoney(Number(selectedCategory.preco_por_minuto))}/min
+                                </p>
+                            )}
+                        </div>
+                        <span className="rounded-full px-2.5 py-0.5 text-sm font-bold" style={{ background: '#48fd0020', color: '#48fd00' }}>
+                            {visibleBikes.length}
                         </span>
                     </div>
 
-                    {availableBikes.length === 0 ? (
+                    {categories.length === 0 ? (
                         <div className="rounded-2xl px-4 py-10 text-center text-sm" style={{ background: '#111', color: '#666' }}>
-                            Nenhuma bicicleta disponível no momento.
+                            Nenhuma categoria ativa encontrada.
+                        </div>
+                    ) : visibleBikes.length === 0 ? (
+                        <div className="rounded-2xl px-4 py-10 text-center text-sm" style={{ background: '#111', color: '#666' }}>
+                            Nenhum veiculo disponivel nesta categoria no momento.
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                            {availableBikes.map((bike) => {
+                            {visibleBikes.map((bike) => {
                                 const isSelected = selectedBike?.id === bike.id;
+                                const categoryPrice = Number(bike.category?.preco_por_minuto ?? 0) || 0;
+
                                 return (
                                     <button
                                         key={bike.id}
@@ -433,9 +491,10 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                                             />
                                         </div>
                                         <p className="relative text-sm font-semibold leading-tight text-zinc-100 sm:text-base">{bike.nome}</p>
+                                        <p className="relative mt-1 text-[11px] uppercase tracking-wide text-zinc-500">{bike.category?.nome ?? 'Sem categoria'}</p>
                                         <div className="relative mt-2 flex items-center justify-between">
                                             <p className="text-xs font-semibold" style={{ color: '#48fd00' }}>
-                                                R$ {pricePerMinute.toFixed(2)}/min
+                                                {formatMoney(categoryPrice)}/min
                                             </p>
                                             <span className="rounded-full border border-zinc-700 bg-zinc-900/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-zinc-400">
                                                 Pronta
@@ -459,11 +518,11 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                             <div className="mb-4 flex items-start justify-between">
                                 <div>
                                     <p className="text-xs" style={{ color: '#fbf100' }}>
-                                        Bicicleta selecionada
+                                        Veiculo selecionado
                                     </p>
                                     <p className="font-bold text-white">{selectedBike.nome}</p>
                                     <p className="text-xs" style={{ color: '#48fd00' }}>
-                                        R$ {pricePerMinute.toFixed(2)}/min
+                                        {formatMoney(Number(selectedBike.category?.preco_por_minuto ?? 0))}/min
                                     </p>
                                 </div>
                                 <button type="button" onClick={cancelSelection} className="text-xs underline" style={{ color: '#666' }}>
@@ -538,7 +597,7 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                                     className="w-full rounded-xl py-4 text-base font-bold transition-opacity disabled:opacity-60"
                                     style={{ background: '#48fd00', color: '#000' }}
                                 >
-                                    {processing ? 'Iniciando...' : '🚲 Iniciar Aluguel'}
+                                    {processing ? 'Iniciando...' : 'Iniciar Aluguel'}
                                 </button>
                             </form>
                         </div>
@@ -547,27 +606,34 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
 
                 <section>
                     <div className="mb-3 flex items-center justify-between">
-                        <h2 className="text-lg font-bold">Em Andamento</h2>
-                        {activeRentals.length > 0 && (
+                        <div>
+                            <h2 className="text-lg font-bold">Em Andamento</h2>
+                            {selectedCategory && (
+                                <p className="text-xs text-zinc-500">Categoria: {selectedCategory.nome}</p>
+                            )}
+                        </div>
+                        {visibleRentals.length > 0 && (
                             <span className="rounded-full px-2.5 py-0.5 text-sm font-bold" style={{ background: '#fbf10020', color: '#fbf100' }}>
-                                {activeRentals.length}
+                                {visibleRentals.length}
                             </span>
                         )}
                     </div>
 
-                    {activeRentals.length === 0 ? (
+                    {visibleRentals.length === 0 ? (
                         <div className="rounded-2xl px-4 py-8 text-center text-sm" style={{ background: '#111', color: '#666' }}>
-                            Nenhum aluguel ativo no momento.
+                            Nenhum aluguel ativo nesta categoria no momento.
                         </div>
                     ) : (
                         <div className="flex flex-col gap-3">
-                            {activeRentals.map((rental) => {
+                            {visibleRentals.map((rental) => {
                                 const elapsedMin = (now - new Date(rental.start_time).getTime()) / 60000;
                                 const isOvertime =
                                     rental.tempo_solicitado !== null &&
                                     rental.tempo_solicitado !== undefined &&
                                     elapsedMin >= rental.tempo_solicitado;
                                 const isFinalizingRental = finalizingRentalId === rental.id;
+                                const categoryPrice = Number(rental.bike.category?.preco_por_minuto ?? 0);
+                                const estimatedValue = estimateRentalCost(rental.start_time, categoryPrice, now);
 
                                 return (
                                     <div
@@ -589,6 +655,9 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                                                     <p className="mb-2 text-base font-bold text-white sm:text-lg">
                                                         Alugado por: {capitalizeName(rental.customer.nome)}
                                                     </p>
+                                                    <p className="mt-0.5 text-xs font-semibold" style={{ color: '#48fd00' }}>
+                                                        {rental.bike.category?.nome ?? 'Sem categoria'} · {formatMoney(categoryPrice)}/min
+                                                    </p>
                                                     {rental.tempo_solicitado && (
                                                         <p className="mt-0.5 text-xs font-semibold" style={{ color: isOvertime ? '#ef4444' : '#666' }}>
                                                             {isOvertime
@@ -601,7 +670,7 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                                                     type="button"
                                                     onClick={() => {
                                                         const message = encodeURIComponent(
-                                                            `Olá! O tempo solicitado de ${rental.tempo_solicitado} minutos para a bicicleta ${rental.bike.nome} já se esgotou. Por favor, dirija-se à base para devolver a bike. Obrigado!`
+                                                            `Olá! O tempo solicitado de ${rental.tempo_solicitado} minutos para o veículo ${rental.bike.nome} já se esgotou. Por favor, dirija-se à base para devolver o veículo. Obrigado!`,
                                                         );
                                                         window.open(`https://wa.me/${rental.customer.telefone.replace(/\D/g, '')}?text=${message}`, '_blank');
                                                     }}
@@ -623,9 +692,7 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                                                     </div>
                                                     <div className="rounded-xl border border-zinc-800 bg-zinc-950/80 px-3 py-2">
                                                         <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Estimado</p>
-                                                        <p className="text-base font-bold text-[#fbf100] sm:text-lg">
-                                                            R$ {estimatedCost(rental.start_time, precoPorMinuto, now)}
-                                                        </p>
+                                                        <p className="text-base font-bold text-[#fbf100] sm:text-lg">{formatMoney(estimatedValue)}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -673,7 +740,8 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                 <DialogContent
                     onEscapeKeyDown={(event) => event.preventDefault()}
                     onInteractOutside={(event) => event.preventDefault()}
-                    className="[&>button]:hidden left-0 top-auto bottom-0 z-[60] max-h-[88vh] w-full max-w-none translate-x-0 translate-y-0 overflow-y-auto rounded-t-3xl rounded-b-none border-zinc-800 bg-black p-0 md:top-1/2 md:bottom-auto md:left-1/2 md:max-h-[85vh] md:w-full md:max-w-xl md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-3xl"
+                    className="[&>button]:hidden left-0 top-auto bottom-0 max-h-[88vh] w-full max-w-none translate-x-0 translate-y-0 overflow-y-auto rounded-t-3xl rounded-b-none border-zinc-800 bg-black p-0 md:top-1/2 md:bottom-auto md:left-1/2 md:max-h-[85vh] md:w-full md:max-w-xl md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-3xl"
+                    style={{ zIndex: 60 }}
                 >
                     <div className="mx-auto w-full max-w-xl px-4 pb-8 pt-3">
                         <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-zinc-700" />
@@ -694,7 +762,7 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                                 >
                                     <p className="text-center text-lg font-bold text-white">{billingData.bike_nome}</p>
                                     <p className="mt-2 text-center text-xs font-semibold" style={{ color: '#48fd00' }}>
-                                        R$ {pricePerMinute.toFixed(2)}/min
+                                        {selectedBike ? `${formatMoney(Number(selectedBike.category?.preco_por_minuto ?? 0))}/min` : ''}
                                     </p>
                                 </div>
 
@@ -707,12 +775,8 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="rounded-3xl border border-zinc-800 bg-zinc-950/80 p-4 text-center">
                                         <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Tempo total</p>
-                                        <p className="mt-1 text-xl font-bold text-white">
-                                            {formatDurationFromSeconds(billingData.total_seconds)}
-                                        </p>
-                                        <p className="text-xs text-zinc-600">
-                                            {(billingData.total_seconds / 60).toFixed(2)} min
-                                        </p>
+                                        <p className="mt-1 text-xl font-bold text-white">{formatDurationFromSeconds(billingData.total_seconds)}</p>
+                                        <p className="text-xs text-zinc-600">{(billingData.total_seconds / 60).toFixed(2)} min</p>
                                     </div>
                                     <div
                                         className="rounded-3xl border-2 p-4 text-center"

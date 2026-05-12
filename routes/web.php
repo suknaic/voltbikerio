@@ -6,7 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\RentalController;
-use App\Http\Controllers\SettingController;
+use App\Http\Controllers\VehicleCategoryController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -37,12 +37,15 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function (): void {
         Route::get('dashboard', [DashboardController::class, 'admin'])->name('dashboard');
         Route::get('rentals/operations', [DashboardController::class, 'rentalOperations'])->name('rentals.operations');
+        Route::get('categories', [VehicleCategoryController::class, 'index'])->name('categories.index');
+        Route::get('categories/create', [VehicleCategoryController::class, 'create'])->name('categories.create');
+        Route::post('categories', [VehicleCategoryController::class, 'store'])->name('categories.store');
+        Route::get('categories/{category}/edit', [VehicleCategoryController::class, 'edit'])->name('categories.edit');
+        Route::patch('categories/{category}', [VehicleCategoryController::class, 'update'])->name('categories.update');
         Route::resource('bikes', BikeController::class)->except(['show']);
         Route::patch('bikes/{bike}/toggle-status', [BikeController::class, 'toggleStatus'])->name('bikes.toggle-status');
         Route::get('rentals/history', [RentalController::class, 'history'])->name('rentals.history');
         Route::get('rentals/export/{format}', [RentalController::class, 'export'])->name('rentals.export');
-        Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
-        Route::patch('settings', [SettingController::class, 'update'])->name('settings.update');
         Route::resource('employees', EmployeeController::class);
     });
 

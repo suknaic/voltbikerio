@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
+use Database\Factories\BikeFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Bike extends Model
 {
-    /** @use HasFactory<\Database\Factories\BikeFactory> */
+    /** @use HasFactory<BikeFactory> */
     use HasFactory;
 
     protected $fillable = [
+        'vehicle_category_id',
         'nome',
         'status',
         'foto_url',
@@ -30,13 +33,18 @@ class Bike extends Model
         return $this->hasMany(Rental::class);
     }
 
-    public function isAvailable(): bool
+    public function category(): BelongsTo
     {
-        return $this->disponivel && $this->status === 'disponível';
+        return $this->belongsTo(VehicleCategory::class, 'vehicle_category_id');
     }
 
-    public static function getPricePerMinute(): string
+    public function isAvailable(): bool
     {
-        return (string) Setting::get('preco_por_minuto', '0.25');
+        return $this->disponivel && $this->status === 'disponível' && (bool) $this->category?->ativo;
+    }
+
+    public function getPricePerMinute(): float
+    {
+        return (float) ($this->category?->preco_por_minuto ?? 0);
     }
 }

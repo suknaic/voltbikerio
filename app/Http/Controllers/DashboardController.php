@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Setting;
 use App\Repositories\BikeRepository;
 use App\Repositories\RentalRepository;
 use Illuminate\Http\Request;
@@ -27,7 +26,6 @@ class DashboardController extends Controller
             'availableBikes' => $this->bikeRepository->available(),
             'todaySummary' => $this->rentalRepository->reportSummary($today, $today),
             'monthSummary' => $this->rentalRepository->reportSummary($monthStart, $today),
-            'preco_por_minuto' => (string) Setting::get('preco_por_minuto', '0.25'),
         ]);
     }
 
@@ -36,7 +34,6 @@ class DashboardController extends Controller
         return Inertia::render('admin/rentals/operations', [
             'availableBikes' => $this->bikeRepository->available(),
             'activeRentals' => $this->rentalRepository->active(),
-            'preco_por_minuto' => (string) Setting::get('preco_por_minuto', '0.25'),
         ]);
     }
 
@@ -47,7 +44,6 @@ class DashboardController extends Controller
         return Inertia::render('employee/dashboard', [
             'availableBikes' => $this->bikeRepository->available(),
             'activeRentals' => $this->rentalRepository->active(),
-            'preco_por_minuto' => (string) Setting::get('preco_por_minuto', '0.25'),
             'rentals' => $this->rentalRepository->history($filters),
             'bikes' => $this->bikeRepository->all(),
             'filters' => $filters,

@@ -23,7 +23,7 @@ class RentalService
     {
         if (! $bike->isAvailable()) {
             throw ValidationException::withMessages([
-                'bike_id' => 'Esta bicicleta não está disponível.',
+                'bike_id' => 'Este veículo não está disponível.',
             ]);
         }
 
@@ -55,7 +55,7 @@ class RentalService
         $endTime = Carbon::now();
         $totalSeconds = max(1, $rental->start_time->diffInSeconds($endTime));
         $totalMinutes = (int) max(1, ceil($totalSeconds / 60));
-        $pricePerMinute = (float) Bike::getPricePerMinute();
+        $pricePerMinute = (float) ($rental->bike?->getPricePerMinute() ?? 0);
         $valorTotal = round(($totalSeconds / 60) * $pricePerMinute, 2);
 
         $rental = $this->rentalRepository->update($rental, [

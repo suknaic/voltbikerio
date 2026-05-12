@@ -6,22 +6,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
-import type { Bike,  BreadcrumbItem } from '@/types';
+import type { Bike, BreadcrumbItem, VehicleCategory } from '@/types';
 
 type Props = {
     bike: Bike;
+    categories: VehicleCategory[];
 };
 
-export default function EditBike({ bike }: Props) {
+export default function EditBike({ bike, categories }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Painel Administrativo', href: '/admin/dashboard' },
-        { title: 'Bicicletas', href: '/admin/bikes' },
+        { title: 'Veiculos', href: '/admin/bikes' },
         { title: `Editar: ${bike.nome}`, href: `/admin/bikes/${bike.id}/edit` },
     ];
 
     const [preview, setPreview] = useState<string | null>(bike.foto_url ? `/${bike.foto_url}` : null);
     const { data, setData, post, processing, errors } = useForm({
         _method: 'patch',
+        vehicle_category_id: String(bike.vehicle_category_id),
         nome: bike.nome,
         foto: null as File | null,
     });
@@ -52,10 +54,29 @@ export default function EditBike({ bike }: Props) {
             <div className="p-3 sm:p-4 md:p-6">
                 <Card className="mx-auto max-w-md animate-in fade-in-0 duration-300">
                     <CardHeader>
-                        <CardTitle>Editar Bicicleta</CardTitle>
+                        <CardTitle>Editar Veiculo</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="vehicle_category_id">Categoria</Label>
+                                <select
+                                    id="vehicle_category_id"
+                                    value={data.vehicle_category_id}
+                                    onChange={(e) => setData('vehicle_category_id', e.target.value)}
+                                    className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                                    required
+                                >
+                                    <option value="">Selecione</option>
+                                    {categories.map((category) => (
+                                        <option key={category.id} value={category.id}>
+                                            {category.nome} - R$ {Number(category.preco_por_minuto).toFixed(2)}/min
+                                        </option>
+                                    ))}
+                                </select>
+                                <InputError message={errors.vehicle_category_id} />
+                            </div>
+
                             <div className="grid gap-2">
                                 <Label htmlFor="nome">Nome</Label>
                                 <Input

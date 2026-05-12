@@ -9,21 +9,28 @@ class BikeRepository
 {
     public function all(): Collection
     {
-        return Bike::query()->orderBy('nome')->get();
+        return Bike::query()
+            ->with('category')
+            ->orderBy('nome')
+            ->get();
     }
 
     public function available(): Collection
     {
         return Bike::query()
+            ->with('category')
             ->where('disponivel', true)
             ->where('status', 'disponível')
+            ->whereHas('category', static function ($query): void {
+                $query->where('ativo', true);
+            })
             ->orderBy('nome')
             ->get();
     }
 
     public function findOrFail(int $id): Bike
     {
-        return Bike::query()->findOrFail($id);
+        return Bike::query()->with('category')->findOrFail($id);
     }
 
     public function create(array $data): Bike
@@ -35,7 +42,7 @@ class BikeRepository
     {
         $bike->update($data);
 
-        return $bike->fresh();
+        return $bike->fresh('category');
     }
 
     public function delete(Bike $bike): void

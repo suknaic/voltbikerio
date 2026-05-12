@@ -1,9 +1,22 @@
+export type VehicleCategory = {
+    id: number;
+    nome: string;
+    preco_por_minuto: string;
+    ativo: boolean;
+    ordem: number;
+    bikes_count?: number;
+    created_at: string;
+    updated_at: string;
+};
+
 export type Bike = {
     id: number;
+    vehicle_category_id: number;
     nome: string;
     status: 'disponível' | 'em uso';
     foto_url?: string;
     disponivel: boolean;
+    category?: VehicleCategory | null;
     created_at: string;
     updated_at: string;
 };

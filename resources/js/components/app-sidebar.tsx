@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Bike, BookOpen, LayoutGrid } from 'lucide-react';
+import { Bike, BookOpen, LayoutGrid, Tags } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -13,7 +13,6 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
 const footerNavItems: NavItem[] = [
@@ -31,7 +30,7 @@ export function AppSidebar() {
     const mainNavItems: NavItem[] = [
         {
             title: 'Painel',
-            href: dashboard(),
+            href: '/dashboard',
             icon: LayoutGrid,
         },
     ];
@@ -41,6 +40,11 @@ export function AppSidebar() {
             title: 'Operações',
             href: '/admin/rentals/operations',
             icon: Bike,
+        });
+        mainNavItems.push({
+            title: 'Categorias',
+            href: '/admin/categories',
+            icon: Tags,
         });
     } else {
         mainNavItems.push({
@@ -56,7 +60,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link href="/dashboard" prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
