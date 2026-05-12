@@ -86,7 +86,7 @@ export default function AdminDashboard({
                             >
                                 <span className="text-xl sm:text-2xl">🚲</span>
                                 <div>
-                                    <p className="text-sm font-semibold text-white">Bicicletas</p>
+                                    <p className="text-sm font-semibold text-white">Veiculos</p>
                                     <p className="text-xs text-zinc-500">Gerenciar frota</p>
                                 </div>
                             </div>

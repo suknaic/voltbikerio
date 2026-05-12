@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Str;
+
 test('registration screen can be rendered', function () {
     $response = $this->get(route('register'));
 
@@ -7,11 +9,13 @@ test('registration screen can be rendered', function () {
 });
 
 test('new users can register', function () {
+    $password = Str::password(20);
+
     $response = $this->post(route('register.store'), [
         'name' => 'Test User',
         'email' => 'test@example.com',
-        'password' => 'password',
-        'password_confirmation' => 'password',
+        'password' => $password,
+        'password_confirmation' => $password,
     ]);
 
     $this->assertAuthenticated();

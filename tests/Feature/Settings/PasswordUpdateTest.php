@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 test('password update page is displayed', function () {
     $user = User::factory()->create();
@@ -15,21 +16,22 @@ test('password update page is displayed', function () {
 
 test('password can be updated', function () {
     $user = User::factory()->create();
+    $newPassword = Str::password(20);
 
     $response = $this
         ->actingAs($user)
         ->from(route('user-password.edit'))
         ->put(route('user-password.update'), [
             'current_password' => 'password',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
+            'password' => $newPassword,
+            'password_confirmation' => $newPassword,
         ]);
 
     $response
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('user-password.edit'));
 
-    expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue();
+    expect(Hash::check($newPassword, $user->refresh()->password))->toBeTrue();
 });
 
 test('correct password must be provided to update password', function () {

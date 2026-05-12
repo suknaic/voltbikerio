@@ -255,9 +255,6 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
     const visibleBikes = selectedCategory
         ? availableBikes.filter((bike) => bike.category?.id === selectedCategory.id)
         : availableBikes;
-    const visibleRentals = selectedCategory
-        ? activeRentals.filter((rental) => rental.bike.category?.id === selectedCategory.id)
-        : activeRentals;
 
     function closeBilling() {
         setBillingOpen(false);
@@ -608,24 +605,22 @@ export default function RentalConsole(props: RentalConsoleProps & FlashProps) {
                     <div className="mb-3 flex items-center justify-between">
                         <div>
                             <h2 className="text-lg font-bold">Em Andamento</h2>
-                            {selectedCategory && (
-                                <p className="text-xs text-zinc-500">Categoria: {selectedCategory.nome}</p>
-                            )}
+                            <p className="text-xs text-zinc-500">Visão única de todos os aluguéis ativos</p>
                         </div>
-                        {visibleRentals.length > 0 && (
+                        {activeRentals.length > 0 && (
                             <span className="rounded-full px-2.5 py-0.5 text-sm font-bold" style={{ background: '#fbf10020', color: '#fbf100' }}>
-                                {visibleRentals.length}
+                                {activeRentals.length}
                             </span>
                         )}
                     </div>
 
-                    {visibleRentals.length === 0 ? (
+                    {activeRentals.length === 0 ? (
                         <div className="rounded-2xl px-4 py-8 text-center text-sm" style={{ background: '#111', color: '#666' }}>
-                            Nenhum aluguel ativo nesta categoria no momento.
+                            Nenhum aluguel ativo no momento.
                         </div>
                     ) : (
                         <div className="flex flex-col gap-3">
-                            {visibleRentals.map((rental) => {
+                            {activeRentals.map((rental) => {
                                 const elapsedMin = (now - new Date(rental.start_time).getTime()) / 60000;
                                 const isOvertime =
                                     rental.tempo_solicitado !== null &&

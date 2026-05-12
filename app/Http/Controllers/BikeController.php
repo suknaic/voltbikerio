@@ -21,6 +21,7 @@ class BikeController extends Controller
     {
         return Inertia::render('admin/bikes/index', [
             'bikes' => $this->bikeRepository->all(),
+            'categories' => VehicleCategory::query()->withCount('bikes')->orderBy('ordem')->orderBy('nome')->get(),
         ]);
     }
 
@@ -38,9 +39,9 @@ class BikeController extends Controller
         if ($request->hasFile('foto')) {
             File::ensureDirectoryExists(public_path('assets/upload/foto/bike'));
             $file = $request->file('foto');
-            $filename = uniqid('bike_') . '.' . $file->getClientOriginalExtension();
+            $filename = uniqid('bike_').'.'.$file->getClientOriginalExtension();
             $file->move(public_path('assets/upload/foto/bike'), $filename);
-            $data['foto_url'] = 'assets/upload/foto/bike/' . $filename;
+            $data['foto_url'] = 'assets/upload/foto/bike/'.$filename;
         }
 
         $this->bikeRepository->create($data);
@@ -68,9 +69,9 @@ class BikeController extends Controller
 
             File::ensureDirectoryExists(public_path('assets/upload/foto/bike'));
             $file = $request->file('foto');
-            $filename = uniqid('bike_') . '.' . $file->getClientOriginalExtension();
+            $filename = uniqid('bike_').'.'.$file->getClientOriginalExtension();
             $file->move(public_path('assets/upload/foto/bike'), $filename);
-            $data['foto_url'] = 'assets/upload/foto/bike/' . $filename;
+            $data['foto_url'] = 'assets/upload/foto/bike/'.$filename;
         }
 
         $this->bikeRepository->update($bike, $data);

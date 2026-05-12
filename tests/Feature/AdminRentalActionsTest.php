@@ -25,7 +25,10 @@ test('admin can start rentals directly from the admin dashboard', function (): v
 
     $response->assertRedirect(route('admin.rentals.operations'));
 
-    $rental = Rental::query()->with('customer')->first();
+    $rental = Rental::query()
+        ->with('customer')
+        ->where('bike_id', $bike->id)
+        ->first();
 
     expect($rental)->not->toBeNull();
     expect($rental?->bike_id)->toBe($bike->id);
