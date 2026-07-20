@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import AppLayout from '@/layouts/app-layout';
 import type { Bike, BreadcrumbItem, VehicleCategory } from '@/types';
 
@@ -23,6 +24,7 @@ function formatCategoryName(category: VehicleCategory): string {
 export default function BikesIndex({ bikes, categories }: Props) {
     const { props } = usePage<{ flash?: Record<string, string> }>();
     const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
+    const [confirmDelete, setConfirmDelete] = useState<Bike | null>(null);
 
     const normalizedCategories = useMemo(() => {
         const categoryMap = new Map<number, VehicleCategory>();
@@ -66,9 +68,30 @@ export default function BikesIndex({ bikes, categories }: Props) {
         router.patch(`/admin/bikes/${bike.id}/toggle-status`);
     }
 
+    function handleDelete(bike: Bike) {
+        router.delete(`/admin/bikes/${bike.id}`, {
+            onSuccess: () => setConfirmDelete(null),
+        });
+    }
+
+    function handleForceAvailable(bike: Bike) {
+        router.patch(`/admin/bikes/${bike.id}/force-available`);
+    }
+
     function statusBadge(bike: Bike) {
         if (bike.status === 'em uso') {
-            return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100">Em Uso</Badge>;
+            return (
+                <div className="flex items-center gap-2">
+                    <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100">Em Uso</Badge>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleForceAvailable(bike)}
+                    >
+                        Liberar
+                    </Button>
+                </div>
+            );
         }
         if (!bike.disponivel) {
             return <Badge className="bg-gray-100 text-gray-500 hover:bg-gray-100">Indisponível</Badge>;
@@ -84,6 +107,12 @@ export default function BikesIndex({ bikes, categories }: Props) {
                 {props.flash?.success && (
                     <div className="animate-in fade-in-0 rounded-md bg-green-50 px-4 py-3 text-sm text-green-700 ring-1 ring-green-200">
                         {props.flash.success}
+                    </div>
+                )}
+
+                {props.flash?.error && (
+                    <div className="animate-in fade-in-0 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200">
+                        {props.flash.error}
                     </div>
                 )}
 
@@ -222,6 +251,13 @@ export default function BikesIndex({ bikes, categories }: Props) {
                                                             <Button variant="outline" size="sm" asChild>
                                                                 <Link href={`/admin/bikes/${bike.id}/edit`}>Editar</Link>
                                                             </Button>
+                                                            <Button
+                                                                variant="destructive"
+                                                                size="sm"
+                                                                onClick={() => setConfirmDelete(bike)}
+                                                            >
+                                                                Excluir
+                                                            </Button>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -234,6 +270,28 @@ export default function BikesIndex({ bikes, categories }: Props) {
                     ))
                 )}
             </div>
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={confirmDelete !== null} onOpenChange={() => setConfirmDelete(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Excluir Veículo</DialogTitle>
+                    </DialogHeader>
+                    <p className="text-sm text-muted-foreground">
+                        Tem certeza que deseja excluir <strong>{confirmDelete?.nome}</strong>? Esta ação não pode ser desfeita.
+                    </p>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setConfirmDelete(null)}>
+                            Cancelar
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={() => confirmDelete && handleDelete(confirmDelete)}
+                        >
+                            Excluir
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }

@@ -44,6 +44,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::patch('categories/{category}', [VehicleCategoryController::class, 'update'])->name('categories.update');
         Route::resource('bikes', BikeController::class)->except(['show']);
         Route::patch('bikes/{bike}/toggle-status', [BikeController::class, 'toggleStatus'])->name('bikes.toggle-status');
+        Route::patch('bikes/{bike}/force-available', [BikeController::class, 'forceAvailable'])->name('bikes.force-available');
         Route::get('rentals/history', [RentalController::class, 'history'])->name('rentals.history');
         Route::get('rentals/export/{format}', [RentalController::class, 'export'])->name('rentals.export');
         Route::resource('employees', EmployeeController::class);

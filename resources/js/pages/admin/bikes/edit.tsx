@@ -1,8 +1,9 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
@@ -21,6 +22,7 @@ export default function EditBike({ bike, categories }: Props) {
     ];
 
     const [preview, setPreview] = useState<string | null>(bike.foto_url ? `/${bike.foto_url}` : null);
+    const [confirmDelete, setConfirmDelete] = useState(false);
     const { data, setData, post, processing, errors } = useForm({
         _method: 'patch',
         vehicle_category_id: String(bike.vehicle_category_id),
@@ -45,6 +47,10 @@ export default function EditBike({ bike, categories }: Props) {
         post(`/admin/bikes/${bike.id}`, {
             forceFormData: true,
         });
+    }
+
+    function handleDelete() {
+        router.delete(`/admin/bikes/${bike.id}`);
     }
 
     return (
@@ -111,11 +117,38 @@ export default function EditBike({ bike, categories }: Props) {
                                 <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
                                     <Link href="/admin/bikes">Cancelar</Link>
                                 </Button>
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    onClick={() => setConfirmDelete(true)}
+                                    className="w-full sm:w-auto sm:ml-auto"
+                                >
+                                    Excluir
+                                </Button>
                             </div>
                         </form>
                     </CardContent>
                 </Card>
             </div>
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Excluir Veículo</DialogTitle>
+                    </DialogHeader>
+                    <p className="text-sm text-muted-foreground">
+                        Tem certeza que deseja excluir <strong>{bike.nome}</strong>? Esta ação não pode ser desfeita.
+                    </p>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setConfirmDelete(false)}>
+                            Cancelar
+                        </Button>
+                        <Button variant="destructive" onClick={handleDelete}>
+                            Excluir
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }

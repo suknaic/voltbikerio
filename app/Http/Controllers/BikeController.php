@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateBikeRequest;
 use App\Models\Bike;
 use App\Models\VehicleCategory;
 use App\Repositories\BikeRepository;
+use App\Services\RentalService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\File;
 use Inertia\Inertia;
@@ -15,7 +16,10 @@ use Inertia\Response;
 
 class BikeController extends Controller
 {
-    public function __construct(private readonly BikeRepository $bikeRepository) {}
+    public function __construct(
+        private readonly BikeRepository $bikeRepository,
+        private readonly RentalService $rentalService,
+    ) {}
 
     public function index(): Response
     {
@@ -81,6 +85,11 @@ class BikeController extends Controller
 
     public function destroy(Bike $bike): RedirectResponse
     {
+        if ($bike->rentals()->whereNull('end_time')->exists()) {
+            return redirect()->route('admin.bikes.index')
+                ->with('error', 'Não é possível excluir veículo com aluguel ativo.');
+        }
+
         if ($bike->foto_url && file_exists(public_path($bike->foto_url))) {
             unlink(public_path($bike->foto_url));
         }
@@ -88,6 +97,20 @@ class BikeController extends Controller
         $this->bikeRepository->delete($bike);
 
         return redirect()->route('admin.bikes.index')->with('success', 'Bicicleta removida com sucesso.');
+    }
+
+    public function forceAvailable(Bike $bike): RedirectResponse
+    {
+        $activeRental = $bike->rentals()->whereNull('end_time')->first();
+
+        if ($activeRental) {
+            $this->rentalService->endRental($activeRental);
+        }
+
+        $this->bikeRepository->markAsAvailable($bike);
+        BikeAvailabilityChanged::dispatch($bike->fresh());
+
+        return redirect()->route('admin.bikes.index')->with('success', 'Veículo disponibilizado com sucesso.');
     }
 
     public function toggleStatus(Bike $bike): RedirectResponse
